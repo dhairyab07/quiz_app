@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Quiz App | dhairyab07</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <script src="script.js"></script>
+  </head>
+  <body class="min-h-screen flex items-center justify-center p-4 cred-bg">
+    <div class="liquid-glass liquid-glass-1"></div>
+    <div class="liquid-glass liquid-glass-2"></div>
+    <div class="liquid-glass liquid-glass-3"></div>
+    <div class="liquid-shimmer"></div>
+
+    <div id="app" class="relative z-10 w-full max-w-md">
+      <div id="auth-screen" class="cred-card rounded-3xl p-8 fade-in">
+        <div class="text-center mb-8">
+          <div
+            class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[#c9b896] to-[#a89775] flex items-center justify-center">
+            <svg
+              class="w-8 h-8 text-[#0a0a0a]"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24">
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+            </svg>
+          </div>
+          <h1 class="text-2xl cred-heading tracking-tight">quiz</h1>
+          <p class="cred-subheading mt-2 text-sm">test your knowledge</p>
+        </div>
+
+        <div class="tab-switcher flex mb-6">
+          <button
+            id="login-tab"
+            onclick="switchAuthTab('login')"
+            class="tab-btn active flex-1 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider">
+            Login
+          </button>
+          <button
+            id="signup-tab"
+            onclick="switchAuthTab('signup')"
+            class="tab-btn flex-1 py-2.5 rounded-lg text-xs font-semibold uppercase tracking-wider">
+            Sign Up
+          </button>
+        </div>
+
+        <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
+          <div>
+            <label class="cred-label mb-2 block">Email Address</label>
+            <input
+              type="email"
+              id="login-email"
+              class="cred-input w-full px-4 py-3.5 rounded-xl"
+              placeholder="you@example.com"
+              required />
+            <p id="login-email-error" class="error-msg hidden"></p>
+          </div>
+          <div>
+            <label class="cred-label mb-2 block">Password</label>
+            <div class="relative">
+              <input
+                type="password"
+                id="login-password"
+                class="cred-input w-full px-4 py-3.5 rounded-xl pr-12"
+                placeholder="••••••••"
+                required />
+              <button
+                type="button"
+                onclick="togglePassword('login-password')"
+                class="password-toggle">
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            </div>
+            <p id="login-password-error" class="error-msg hidden"></p>
+          </div>
+          <p id="login-error" class="error-msg hidden text-center"></p>
+          <button
+            type="submit"
+            class="w-full py-4 cred-button-primary rounded-2xl mt-6">
+            Login
+          </button>
+        </form>
+
+        <form
+          id="signup-form"
+          class="hidden space-y-4"
+          onsubmit="handleSignup(event)">
+          <div>
+            <label class="cred-label mb-2 block">Full Name</label>
+            <input
+              type="text"
+              id="signup-name"
+              class="cred-input w-full px-4 py-3.5 rounded-xl"
+              placeholder="John Doe"
+              required />
+            <p id="signup-name-error" class="error-msg hidden"></p>
+          </div>
+          <div>
+            <label class="cred-label mb-2 block">Email Address</label>
+            <input
+              type="email"
+              id="signup-email"
+              class="cred-input w-full px-4 py-3.5 rounded-xl"
+              placeholder="you@example.com"
+              required />
+            <p id="signup-email-error" class="error-msg hidden"></p>
+          </div>
+          <div>
+            <label class="cred-label mb-2 block">Password</label>
+            <div class="relative">
+              <input
+                type="password"
+                id="signup-password"
+                class="cred-input w-full px-4 py-3.5 rounded-xl pr-12"
+                placeholder="Min 6 characters"
+                required />
+              <button
+                type="button"
+                onclick="togglePassword('signup-password')"
+                class="password-toggle">
+                <svg
+                  class="w-5 h-5"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                </svg>
+              </button>
+            </div>
+            <p id="signup-password-error" class="error-msg hidden"></p>
+          </div>
+          <div>
+            <label class="cred-label mb-2 block">Occupation</label>
+            <div id="occupation-grid" class="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onclick="selectOccupation('student')"
+                class="occupation-option selected rounded-xl py-3 px-4 text-left">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🎓</span>
+                  <span class="text-white/70 text-xs font-semibold"
+                    >Student</span
+                  >
+                </div>
+              </button>
+              <button
+                type="button"
+                onclick="selectOccupation('professional')"
+                class="occupation-option rounded-xl py-3 px-4 text-left">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">💼</span>
+                  <span class="text-white/70 text-xs font-semibold"
+                    >Professional</span
+                  >
+                </div>
+              </button>
+              <button
+                type="button"
+                onclick="selectOccupation('educator')"
+                class="occupation-option rounded-xl py-3 px-4 text-left">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">👨‍🏫</span>
+                  <span class="text-white/70 text-xs font-semibold"
+                    >Educator</span
+                  >
+                </div>
+              </button>
+              <button
+                type="button"
+                onclick="selectOccupation('other')"
+                class="occupation-option rounded-xl py-3 px-4 text-left">
+                <div class="flex items-center gap-2">
+                  <span class="text-lg">🌟</span>
+                  <span class="text-white/70 text-xs font-semibold">Other</span>
+                </div>
+              </button>
+            </div>
+            <input type="hidden" id="signup-occupation" value="student" />
+          </div>
+          <p id="signup-error" class="error-msg hidden text-center"></p>
+          <button
+            type="submit"
+            class="w-full py-4 cred-button-primary rounded-2xl mt-2">
+            Create Account
+          </button>
+        </form>
+      </div>
+
+      <div id="start-screen" class="hidden">
+        <div class="cred-card rounded-3xl p-8 fade-in">
+          <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+              <div id="user-avatar" class="user-avatar">JD</div>
+              <div>
+                <p
+                  id="user-greeting"
+                  class="text-white/90 font-semibold text-sm">
+                  hey, john
+                </p>
+                <p id="user-occupation" class="text-white/40 text-xs">
+                  student
+                </p>
+              </div>
+            </div>
+            <div class="relative">
+              <button
+                onclick="toggleUserMenu()"
+                class="p-2 rounded-xl hover:bg-white/5 transition-colors">
+                <svg
+                  class="w-5 h-5 text-white/50"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24">
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.5"
+                    d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />
+                </svg>
+              </button>
+              <div
+                id="user-menu"
+                class="hidden absolute right-0 top-12 w-48 dropdown-menu rounded-2xl py-2 z-50">
+                <div class="px-4 py-2 border-b border-white/5">
+                  <p
+                    id="menu-user-name"
+                    class="text-white/90 text-sm font-semibold">
+                    John Doe
+                  </p>
+                  <p
+                    id="menu-user-email"
+                    class="text-white/40 text-xs truncate">
+                    john@example.com
+                  </p>
+                </div>
+                <button
+                  onclick="handleLogout()"
+                  class="w-full px-4 py-3 text-left text-red-400 text-sm font-medium hover:bg-white/5 transition-colors flex items-center gap-2">
+                  <svg
+                    class="w-4 h-4"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24">
+                    <path
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.5"
+                      d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                  </svg>
+                  Logout
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="cred-divider mb-6"></div>
+
+          <div class="text-center mb-8">
+            <h1 class="text-xl cred-heading tracking-tight">ready to play?</h1>
+            <p class="cred-subheading mt-2 text-sm">
+              choose your category & start
+            </p>
+          </div>
+
+          <div class="mb-6">
+            <label class="cred-label mb-3 block px-1">Category</label>
+            <div id="category-grid" class="grid grid-cols-2 gap-2">
+              <!-- Categories will be inserted here -->
+            </div>
+          </div>
+
+          <div class="mb-8">
+            <label class="cred-label mb-3 block px-1">Questions</label>
+            <div id="question-count-grid" class="grid grid-cols-4 gap-2">
+              <button
+                onclick="setQuestionCount(5)"
+                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
+                5
+              </button>
+              <button
+                onclick="setQuestionCount(10)"
+                class="cred-select-option active rounded-xl py-3 text-white/70 text-sm font-semibold">
+                10
+              </button>
+              <button
+                onclick="setQuestionCount(15)"
+                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
+                15
+              </button>
+              <button
+                onclick="setQuestionCount(20)"
+                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
+                20
+              </button>
+            </div>
+          </div>
+
+          <div class="cred-divider mb-6"></div>
+
+          <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center gap-3">
+              <span id="selected-category-icon" class="category-icon">🎯</span>
+              <div>
+                <p
+                  id="selected-category-name"
+                  class="text-white/90 font-semibold text-sm">
+                  All Categories
+                </p>
+                <p id="available-questions" class="text-white/40 text-xs">
+                  90+ available
+                </p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p id="selected-count" class="cred-gold font-bold text-2xl">10</p>
+              <p class="text-white/40 text-xs">questions</p>
+            </div>
+          </div>
+
+          <button
+            onclick="startQuiz()"
+            class="w-full py-4 cred-button-primary rounded-2xl">
+            Start Quiz
+          </button>
+        </div>
+      </div>
+
+      <div id="quiz-screen" class="hidden">
+        <div class="cred-card rounded-3xl p-6 fade-in">
+          <div class="flex items-center justify-between mb-1">
+            <span id="category-badge" class="cred-label"></span>
+            <span id="score-display" class="cred-gold text-sm font-bold"
+              >0</span
+            >
+          </div>
+
+          <div class="flex items-center justify-between mb-4">
+            <span
+              id="question-counter"
+              class="text-white/40 text-xs font-medium"
+              >1 / 10</span
+            >
+          </div>
+
+          <div class="cred-progress-track h-1 mb-8">
+            <div
+              id="progress-bar"
+              class="cred-progress-fill h-full"
+              style="width: 10%"></div>
+          </div>
+
+          <div id="question-container">
+            <h2
+              id="question-text"
+              class="text-lg text-white/90 font-semibold leading-relaxed mb-8"></h2>
+            <div id="options-container" class="space-y-3"></div>
+          </div>
+
+          <button
+            id="next-btn"
+            onclick="nextQuestion()"
+            class="hidden w-full mt-6 py-4 cred-button-primary rounded-2xl">
+            Next
+          </button>
+        </div>
+      </div>
+
+      <div id="result-screen" class="hidden">
+        <div class="cred-card rounded-3xl p-8 text-center fade-in">
+          <div class="relative w-36 h-36 mx-auto mb-8">
+            <div
+              id="score-circle"
+              class="score-circle w-full h-full rounded-full flex items-center justify-center"
+              style="--score-percent: 0%">
+              <div
+                class="score-inner w-28 h-28 rounded-full flex flex-col items-center justify-center">
+                <span id="final-score" class="text-4xl font-bold cred-gold"
+                  >0</span
+                >
+                <span id="total-questions" class="text-white/40 text-xs mt-1"
+                  >out of 10</span
+                >
+              </div>
+            </div>
+          </div>
+
+          <h2 id="result-message" class="text-xl cred-heading mb-1">
+            great job!
+          </h2>
+          <p id="result-subtitle" class="cred-subheading text-sm mb-10">
+            you've completed the quiz
+          </p>
+
+          <div class="space-y-3">
+            <button
+              onclick="restartQuiz()"
+              class="w-full py-4 cred-button-primary rounded-2xl">
+              Play Again
+            </button>
+            <button
+              onclick="goHome()"
+              class="w-full py-3 cred-button-secondary rounded-2xl">
+              Change Settings
+            </button>
+            <button
+              onclick="showAnswers()"
+              class="w-full py-3 text-white/40 text-xs font-semibold uppercase tracking-wider hover:text-white/60 transition-colors">
+              Review Answers
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div id="review-screen" class="hidden">
+        <div
+          class="cred-card rounded-3xl p-6 fade-in max-h-[80vh] overflow-y-auto">
+          <div class="flex items-center justify-between mb-6">
+            <h2 class="text-lg cred-heading">review</h2>
+            <button
+              onclick="backToResults()"
+              class="text-white/40 hover:text-white/60 transition-colors">
+              <svg
+                class="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24">
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <div id="review-container" class="space-y-4"></div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
