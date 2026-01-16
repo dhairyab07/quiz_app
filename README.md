@@ -8,7 +8,7 @@ A stunning, minimal Quiz web application featuring Apple's liquid glass effects 
 
 ## 🌐 Live Demo
 
-**Project Page URL:** [https://dhairyab07.github.io/quiz_app](https://dhairyab07.github.io/quiz_app)
+**Project Page URL:** [https://dhairyab07.github.io/quiz_app](https://dhairyab07.github.io/quiz_app)  
 **Project Reference URL:** [https://roadmap.sh/projects/quiz-app](https://roadmap.sh/projects/quiz-app)
 
 ---
