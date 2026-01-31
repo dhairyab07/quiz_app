@@ -21,6 +21,7 @@
             class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-br from-[#c9b896] to-[#a89775] flex items-center justify-center">
             <svg
               class="w-8 h-8 text-[#0a0a0a]"
+              aria-hidden="true"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24">
@@ -52,17 +53,17 @@
 
         <form id="login-form" class="space-y-4" onsubmit="handleLogin(event)">
           <div>
-            <label class="cred-label mb-2 block">Email Address</label>
+            <label for="login-email" class="cred-label mb-2 block">Email Address</label>
             <input
               type="email"
               id="login-email"
               class="cred-input w-full px-4 py-3.5 rounded-xl"
               placeholder="you@example.com"
               required />
-            <p id="login-email-error" class="error-msg hidden"></p>
+            <p id="login-email-error" class="error-msg hidden" aria-live="polite"></p>
           </div>
           <div>
-            <label class="cred-label mb-2 block">Password</label>
+            <label for="login-password" class="cred-label mb-2 block">Password</label>
             <div class="relative">
               <input
                 type="password"
@@ -73,9 +74,11 @@
               <button
                 type="button"
                 onclick="togglePassword('login-password')"
-                class="password-toggle">
+                class="password-toggle"
+                aria-label="Show password">
                 <svg
                   class="w-5 h-5"
+                  aria-hidden="true"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24">
@@ -92,9 +95,9 @@
                 </svg>
               </button>
             </div>
-            <p id="login-password-error" class="error-msg hidden"></p>
+            <p id="login-password-error" class="error-msg hidden" aria-live="polite"></p>
           </div>
-          <p id="login-error" class="error-msg hidden text-center"></p>
+          <p id="login-error" class="error-msg hidden text-center" aria-live="polite"></p>
           <button
             type="submit"
             class="w-full py-4 cred-button-primary rounded-2xl mt-6">
@@ -107,27 +110,27 @@
           class="hidden space-y-4"
           onsubmit="handleSignup(event)">
           <div>
-            <label class="cred-label mb-2 block">Full Name</label>
+            <label for="signup-name" class="cred-label mb-2 block">Full Name</label>
             <input
               type="text"
               id="signup-name"
               class="cred-input w-full px-4 py-3.5 rounded-xl"
               placeholder="John Doe"
               required />
-            <p id="signup-name-error" class="error-msg hidden"></p>
+            <p id="signup-name-error" class="error-msg hidden" aria-live="polite"></p>
           </div>
           <div>
-            <label class="cred-label mb-2 block">Email Address</label>
+            <label for="signup-email" class="cred-label mb-2 block">Email Address</label>
             <input
               type="email"
               id="signup-email"
               class="cred-input w-full px-4 py-3.5 rounded-xl"
               placeholder="you@example.com"
               required />
-            <p id="signup-email-error" class="error-msg hidden"></p>
+            <p id="signup-email-error" class="error-msg hidden" aria-live="polite"></p>
           </div>
           <div>
-            <label class="cred-label mb-2 block">Password</label>
+            <label for="signup-password" class="cred-label mb-2 block">Password</label>
             <div class="relative">
               <input
                 type="password"
@@ -138,9 +141,11 @@
               <button
                 type="button"
                 onclick="togglePassword('signup-password')"
-                class="password-toggle">
+                class="password-toggle"
+                aria-label="Show password">
                 <svg
                   class="w-5 h-5"
+                  aria-hidden="true"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24">
@@ -157,7 +162,7 @@
                 </svg>
               </button>
             </div>
-            <p id="signup-password-error" class="error-msg hidden"></p>
+            <p id="signup-password-error" class="error-msg hidden" aria-live="polite"></p>
           </div>
           <div>
             <label class="cred-label mb-2 block">Occupation</label>
@@ -167,7 +172,7 @@
                 onclick="selectOccupation('student')"
                 class="occupation-option selected rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
-                  <span class="text-lg">🎓</span>
+                  <span class="text-lg" aria-hidden="true">🎓</span>
                   <span class="text-white/70 text-xs font-semibold"
                     >Student</span
                   >
@@ -178,7 +183,7 @@
                 onclick="selectOccupation('professional')"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
-                  <span class="text-lg">💼</span>
+                  <span class="text-lg" aria-hidden="true">💼</span>
                   <span class="text-white/70 text-xs font-semibold"
                     >Professional</span
                   >
@@ -189,7 +194,7 @@
                 onclick="selectOccupation('educator')"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
-                  <span class="text-lg">👨‍🏫</span>
+                  <span class="text-lg" aria-hidden="true">👨‍🏫</span>
                   <span class="text-white/70 text-xs font-semibold"
                     >Educator</span
                   >
@@ -200,14 +205,14 @@
                 onclick="selectOccupation('other')"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
-                  <span class="text-lg">🌟</span>
+                  <span class="text-lg" aria-hidden="true">🌟</span>
                   <span class="text-white/70 text-xs font-semibold">Other</span>
                 </div>
               </button>
             </div>
             <input type="hidden" id="signup-occupation" value="student" />
           </div>
-          <p id="signup-error" class="error-msg hidden text-center"></p>
+          <p id="signup-error" class="error-msg hidden text-center" aria-live="polite"></p>
           <button
             type="submit"
             class="w-full py-4 cred-button-primary rounded-2xl mt-2">
@@ -234,10 +239,14 @@
             </div>
             <div class="relative">
               <button
+                id="user-menu-btn"
                 onclick="toggleUserMenu()"
-                class="p-2 rounded-xl hover:bg-white/5 transition-colors">
+                class="p-2 rounded-xl hover:bg-white/5 transition-colors"
+                aria-label="User menu"
+                aria-expanded="false">
                 <svg
                   class="w-5 h-5 text-white/50"
+                  aria-hidden="true"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24">
@@ -448,9 +457,11 @@
             <h2 class="text-lg cred-heading">review</h2>
             <button
               onclick="backToResults()"
-              class="text-white/40 hover:text-white/60 transition-colors">
+              class="text-white/40 hover:text-white/60 transition-colors"
+              aria-label="Back to results">
               <svg
                 class="w-5 h-5"
+                aria-hidden="true"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24">

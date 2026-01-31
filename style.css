@@ -464,3 +464,18 @@ body {
 .password-toggle:hover {
   color: rgba(255, 255, 255, 0.7);
 }
+
+/* Accessibility: Focus visible styles */
+button:focus-visible,
+.cred-input:focus-visible,
+.cred-select-option:focus-visible,
+.occupation-option:focus-visible,
+.cred-option:focus-visible {
+  outline: 2px solid #c9b896;
+  outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+.cred-input:focus:not(:focus-visible) {
+  outline: none;
+}
