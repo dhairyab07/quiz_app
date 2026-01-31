@@ -54,7 +54,14 @@ function switchAuthTab(tab) {
 
 function togglePassword(inputId) {
   const input = document.getElementById(inputId);
+  const button = input.nextElementSibling;
   input.type = input.type === "password" ? "text" : "password";
+  if (button && button.classList.contains("password-toggle")) {
+    button.setAttribute(
+      "aria-label",
+      input.type === "password" ? "Show password" : "Hide password"
+    );
+  }
 }
 
 function selectOccupation(occupation) {
@@ -197,6 +204,8 @@ function handleLogout() {
   currentUser = null;
   localStorage.removeItem("quizUser");
   document.getElementById("user-menu").classList.add("hidden");
+  const btn = document.getElementById("user-menu-btn");
+  if (btn) btn.setAttribute("aria-expanded", "false");
 
   document.getElementById("login-form").reset();
   document.getElementById("signup-form").reset();
@@ -226,7 +235,11 @@ function updateUserUI() {
 
 function toggleUserMenu() {
   const menu = document.getElementById("user-menu");
-  menu.classList.toggle("hidden");
+  const btn = document.getElementById("user-menu-btn");
+  const isHidden = menu.classList.toggle("hidden");
+  if (btn) {
+    btn.setAttribute("aria-expanded", !isHidden);
+  }
 }
 
 document.addEventListener("click", (e) => {
@@ -237,6 +250,8 @@ document.addEventListener("click", (e) => {
     !menuButton?.onclick?.toString().includes("toggleUserMenu")
   ) {
     menu.classList.add("hidden");
+    const btn = document.getElementById("user-menu-btn");
+    if (btn) btn.setAttribute("aria-expanded", "false");
   }
 });
 
@@ -869,7 +884,7 @@ function initCategories() {
   let html = `
       <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
-              <span class="category-icon">🎯</span>
+              <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
           </div>
       </button>
@@ -880,7 +895,7 @@ function initCategories() {
     html += `
           <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
               <div class="flex items-center gap-2">
-                  <span class="category-icon">${cat.icon}</span>
+                  <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
               </div>
           </button>
