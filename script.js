@@ -1002,6 +1002,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  // Focus first option for keyboard accessibility
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350); // Delay to account for fade-in animation
 }
 
 function selectAnswer(index, button) {
@@ -1028,6 +1034,7 @@ function selectAnswer(index, button) {
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+  document.getElementById("next-btn").focus();
 }
 
 function nextQuestion() {
@@ -1181,3 +1188,40 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+// Keyboard shortcuts and accessibility
+document.addEventListener("keydown", (e) => {
+  // User Menu: Close on Escape
+  if (e.key === "Escape") {
+    const menu = document.getElementById("user-menu");
+    if (menu && !menu.classList.contains("hidden")) {
+      toggleUserMenu();
+    }
+  }
+
+  // Quiz Shortcuts
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen && !quizScreen.classList.contains("hidden")) {
+    if (!answered) {
+      const key = e.key.toLowerCase();
+      // Support A-D and 1-4 shortcuts
+      const index = ["a", "b", "c", "d"].indexOf(key);
+      const numIndex = ["1", "2", "3", "4"].indexOf(key);
+      const finalIndex = index !== -1 ? index : numIndex;
+
+      if (finalIndex !== -1) {
+        e.preventDefault();
+        const buttons = document.querySelectorAll(".cred-option");
+        if (buttons[finalIndex]) {
+          selectAnswer(finalIndex, buttons[finalIndex]);
+        }
+      }
+    } else if (e.key === "Enter") {
+      const nextBtn = document.getElementById("next-btn");
+      if (nextBtn && !nextBtn.classList.contains("hidden")) {
+        e.preventDefault();
+        nextQuestion();
+      }
+    }
+  }
+});
