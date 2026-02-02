@@ -975,9 +975,15 @@ function showQuestion() {
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${
     ((currentQuestion + 1) / currentQuestions.length) * 100
   }%`;
+  const track = progressBar.parentElement;
+  if (track) {
+    track.setAttribute("aria-valuenow", currentQuestion + 1);
+    track.setAttribute("aria-valuemax", currentQuestions.length);
+  }
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1002,6 +1008,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  // Accessibility: Focus first option after fade-in
+  setTimeout(() => {
+    const firstOption = document.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1025,9 +1037,13 @@ function selectAnswer(index, button) {
     document.getElementById("score-display").textContent = score;
   }
 
-  document.getElementById("next-btn").classList.remove("hidden");
-  document.getElementById("next-btn").textContent =
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn.classList.remove("hidden");
+  nextBtn.textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  // Accessibility: Focus next button immediately after selection
+  nextBtn.focus();
 }
 
 function nextQuestion() {
@@ -1072,9 +1088,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const circle = document.getElementById("score-circle");
+      circle.style.setProperty("--score-percent", `${percentage}%`);
+      circle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1181,3 +1197,39 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+// Keyboard shortcuts for the quiz
+document.addEventListener("keydown", (e) => {
+  const quizScreen = document.getElementById("quiz-screen");
+  if (!quizScreen || quizScreen.classList.contains("hidden")) return;
+
+  const key = e.key.toLowerCase();
+
+  // A-D or 1-4 for answers
+  if (["a", "b", "c", "d", "1", "2", "3", "4"].includes(key)) {
+    e.preventDefault();
+    const index = ["a", "b", "c", "d"].includes(key)
+      ? key.charCodeAt(0) - 97
+      : parseInt(key) - 1;
+
+    const options = document.querySelectorAll(".cred-option");
+    if (options[index] && !answered) {
+      options[index].click();
+    }
+  }
+  // Enter for Next
+  else if (key === "enter") {
+    const nextBtn = document.getElementById("next-btn");
+    if (nextBtn && !nextBtn.classList.contains("hidden")) {
+      e.preventDefault();
+      nextBtn.click();
+    }
+  }
+  // Escape to close user menu
+  else if (key === "escape") {
+    const menu = document.getElementById("user-menu");
+    if (menu && !menu.classList.contains("hidden")) {
+      toggleUserMenu();
+    }
+  }
+});
