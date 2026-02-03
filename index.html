@@ -166,10 +166,11 @@
           </div>
           <div>
             <label class="cred-label mb-2 block">Occupation</label>
-            <div id="occupation-grid" class="grid grid-cols-2 gap-2">
+            <div id="occupation-grid" role="radiogroup" class="grid grid-cols-2 gap-2">
               <button
                 type="button"
                 onclick="selectOccupation('student')"
+                aria-pressed="true"
                 class="occupation-option selected rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🎓</span>
@@ -181,6 +182,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('professional')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">💼</span>
@@ -192,6 +194,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('educator')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">👨‍🏫</span>
@@ -203,6 +206,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('other')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🌟</span>
@@ -368,7 +372,7 @@
         <div class="cred-card rounded-3xl p-6 fade-in">
           <div class="flex items-center justify-between mb-1">
             <span id="category-badge" class="cred-label"></span>
-            <span id="score-display" class="cred-gold text-sm font-bold"
+            <span id="score-display" aria-live="polite" class="cred-gold text-sm font-bold"
               >0</span
             >
           </div>
@@ -376,6 +380,7 @@
           <div class="flex items-center justify-between mb-4">
             <span
               id="question-counter"
+              aria-live="polite"
               class="text-white/40 text-xs font-medium"
               >1 / 10</span
             >
@@ -384,6 +389,10 @@
           <div class="cred-progress-track h-1 mb-8">
             <div
               id="progress-bar"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="10"
               class="cred-progress-fill h-full"
               style="width: 10%"></div>
           </div>

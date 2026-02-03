@@ -67,10 +67,13 @@ function togglePassword(inputId) {
 function selectOccupation(occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    const isSelected =
+      btn.getAttribute("onclick").includes(`'${occupation}'`) ||
+      btn.innerText.toLowerCase().includes(occupation);
+    btn.classList.toggle("selected", isSelected);
+    btn.setAttribute("aria-pressed", isSelected);
+  });
 }
 
 function clearErrors() {
@@ -880,9 +883,10 @@ function generateQuestions() {
 
 function initCategories() {
   const grid = document.getElementById("category-grid");
+  grid.setAttribute("role", "radiogroup");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory('all')" aria-pressed="true" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +897,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory('${key}')" aria-pressed="false" class="cred-select-option rounded-xl p-3 text-left">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -910,8 +914,11 @@ function setCategory(category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      const isActive = btn.getAttribute("onclick").includes(`'${category}'`);
+      btn.classList.toggle("active", isActive);
+      btn.setAttribute("aria-pressed", isActive);
+    });
   updateQuizInfo();
 }
 
@@ -972,12 +979,15 @@ function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
 
-  document.getElementById("question-counter").textContent = `${
-    currentQuestion + 1
-  } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const total = currentQuestions.length;
+  const current = currentQuestion + 1;
+  const percent = (current / total) * 100;
+
+  document.getElementById("question-counter").textContent = `${current} / ${total}`;
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${percent}%`;
+  progressBar.setAttribute("aria-valuenow", Math.round(percent));
+
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1002,6 +1012,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  // Focus management: 350ms delay to account for fade-in animation
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector("button");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1025,9 +1041,11 @@ function selectAnswer(index, button) {
     document.getElementById("score-display").textContent = score;
   }
 
-  document.getElementById("next-btn").classList.remove("hidden");
-  document.getElementById("next-btn").textContent =
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn.classList.remove("hidden");
+  nextBtn.textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+  nextBtn.focus();
 }
 
 function nextQuestion() {
@@ -1072,9 +1090,12 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const scoreCircle = document.getElementById("score-circle");
+      scoreCircle.style.setProperty("--score-percent", `${percentage}%`);
+      scoreCircle.setAttribute(
+        "aria-label",
+        `Your score is ${score} out of ${currentQuestions.length}`
+      );
     }, 100);
 
     let message, subtitle;
@@ -1179,5 +1200,48 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+// Keyboard Navigation Support
+document.addEventListener("keydown", (e) => {
+  // ESC to close menus or return
+  if (e.key === "Escape") {
+    const reviewScreen = document.getElementById("review-screen");
+    const userMenu = document.getElementById("user-menu");
+
+    if (!reviewScreen.classList.contains("hidden")) {
+      backToResults();
+    } else if (!userMenu.classList.contains("hidden")) {
+      toggleUserMenu();
+    }
+    return;
+  }
+
+  // Quiz Shortcuts
+  const quizScreen = document.getElementById("quiz-screen");
+  if (!quizScreen.classList.contains("hidden")) {
+    // 1-4 or A-D for options
+    const key = e.key.toUpperCase();
+    const options = document.querySelectorAll(".cred-option");
+
+    if (["1", "2", "3", "4"].includes(key)) {
+      e.preventDefault();
+      const index = parseInt(key) - 1;
+      if (options[index] && !answered) options[index].click();
+    } else if (["A", "B", "C", "D"].includes(key)) {
+      e.preventDefault();
+      const index = key.charCodeAt(0) - 65;
+      if (options[index] && !answered) options[index].click();
+    }
+
+    // Enter for Next
+    if (e.key === "Enter") {
+      const nextBtn = document.getElementById("next-btn");
+      if (!nextBtn.classList.contains("hidden")) {
+        e.preventDefault();
+        nextBtn.click();
+      }
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
