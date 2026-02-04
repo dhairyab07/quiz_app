@@ -69,8 +69,15 @@ function selectOccupation(occupation) {
   document.getElementById("signup-occupation").value = occupation;
   document
     .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+    .forEach((btn) => {
+      btn.classList.remove("selected");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const currentBtn = event.currentTarget;
+  if (currentBtn) {
+    currentBtn.classList.add("selected");
+    currentBtn.setAttribute("aria-pressed", "true");
+  }
 }
 
 function clearErrors() {
@@ -882,7 +889,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory('all')" aria-pressed="true" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -910,8 +917,15 @@ function setCategory(category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const currentBtn = event.currentTarget;
+  if (currentBtn) {
+    currentBtn.classList.add("active");
+    currentBtn.setAttribute("aria-pressed", "true");
+  }
   updateQuizInfo();
 }
 
@@ -919,8 +933,15 @@ function setQuestionCount(count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const currentBtn = event.currentTarget;
+  if (currentBtn) {
+    currentBtn.classList.add("active");
+    currentBtn.setAttribute("aria-pressed", "true");
+  }
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -975,9 +996,14 @@ function showQuestion() {
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+
+  const progressPercent = ((currentQuestion + 1) / currentQuestions.length) * 100;
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progressPercent}%`;
+
+  const progressTrack = progressBar.parentElement;
+  progressTrack.setAttribute("aria-valuenow", currentQuestion + 1);
+  progressTrack.setAttribute("aria-valuemax", currentQuestions.length);
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1002,6 +1028,11 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1025,9 +1056,13 @@ function selectAnswer(index, button) {
     document.getElementById("score-display").textContent = score;
   }
 
-  document.getElementById("next-btn").classList.remove("hidden");
-  document.getElementById("next-btn").textContent =
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn.classList.remove("hidden");
+  nextBtn.textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  // Use setTimeout to ensure focus moves to the Next button after the click event finishes
+  setTimeout(() => nextBtn.focus(), 100);
 }
 
 function nextQuestion() {
@@ -1181,3 +1216,38 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+document.addEventListener("keydown", (e) => {
+  if (["INPUT", "TEXTAREA"].includes(document.activeElement.tagName)) return;
+
+  if (e.key === "Escape") {
+    const menu = document.getElementById("user-menu");
+    if (menu && !menu.classList.contains("hidden")) {
+      toggleUserMenu();
+    }
+  }
+
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen && !quizScreen.classList.contains("hidden")) {
+    if (
+      (e.key >= "1" && e.key <= "4") ||
+      (e.key.toLowerCase() >= "a" && e.key.toLowerCase() <= "d")
+    ) {
+      e.preventDefault();
+      const index =
+        e.key >= "1" && e.key <= "4"
+          ? parseInt(e.key) - 1
+          : e.key.toLowerCase().charCodeAt(0) - 97;
+      const buttons = document.querySelectorAll(".cred-option");
+      if (buttons[index] && !answered) {
+        buttons[index].click();
+      }
+    } else if (e.key === "Enter") {
+      const nextBtn = document.getElementById("next-btn");
+      if (nextBtn && !nextBtn.classList.contains("hidden")) {
+        e.preventDefault();
+        nextBtn.click();
+      }
+    }
+  }
+});

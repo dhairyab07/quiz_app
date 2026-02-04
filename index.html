@@ -170,6 +170,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('student')"
+                aria-pressed="true"
                 class="occupation-option selected rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🎓</span>
@@ -318,6 +319,7 @@
               </button>
               <button
                 onclick="setQuestionCount(10)"
+                aria-pressed="true"
                 class="cred-select-option active rounded-xl py-3 text-white/70 text-sm font-semibold">
                 10
               </button>
@@ -381,7 +383,12 @@
             >
           </div>
 
-          <div class="cred-progress-track h-1 mb-8">
+          <div
+            class="cred-progress-track h-1 mb-8"
+            role="progressbar"
+            aria-valuemin="1"
+            aria-valuemax="10"
+            aria-valuenow="1">
             <div
               id="progress-bar"
               class="cred-progress-fill h-full"
