@@ -67,10 +67,13 @@ function togglePassword(inputId) {
 function selectOccupation(occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const currentBtn = event.currentTarget;
+  currentBtn.classList.add("selected");
+  currentBtn.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +885,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory('all')" aria-pressed="true" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +896,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory('${key}')" aria-pressed="false" class="cred-select-option rounded-xl p-3 text-left">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -910,8 +913,13 @@ function setCategory(category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const currentBtn = event.currentTarget;
+  currentBtn.classList.add("active");
+  currentBtn.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
@@ -919,8 +927,13 @@ function setQuestionCount(count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const currentBtn = event.currentTarget;
+  currentBtn.classList.add("active");
+  currentBtn.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -1002,6 +1015,11 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1028,6 +1046,10 @@ function selectAnswer(index, button) {
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  setTimeout(() => {
+    document.getElementById("next-btn").focus();
+  }, 100);
 }
 
 function nextQuestion() {
@@ -1181,3 +1203,49 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const menu = document.getElementById("user-menu");
+    if (menu && !menu.classList.contains("hidden")) {
+      menu.classList.add("hidden");
+      const btn = document.getElementById("user-menu-btn");
+      if (btn) {
+        btn.setAttribute("aria-expanded", "false");
+        btn.focus();
+      }
+    }
+    return;
+  }
+
+  const quizScreen = document.getElementById("quiz-screen");
+  if (!quizScreen || quizScreen.classList.contains("hidden")) return;
+
+  if (e.key === "Enter") {
+    const nextBtn = document.getElementById("next-btn");
+    if (nextBtn && !nextBtn.classList.contains("hidden")) {
+      e.preventDefault();
+      nextQuestion();
+    }
+    return;
+  }
+
+  if (answered) return;
+
+  const options = document.querySelectorAll(".cred-option");
+  let index = -1;
+
+  if (e.key >= "1" && e.key <= "4") {
+    index = parseInt(e.key) - 1;
+  } else {
+    const key = e.key.toLowerCase();
+    if (key >= "a" && key <= "d") {
+      index = key.charCodeAt(0) - 97;
+    }
+  }
+
+  if (index >= 0 && index < options.length) {
+    e.preventDefault();
+    selectAnswer(index, options[index]);
+  }
+});

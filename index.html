@@ -170,6 +170,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('student')"
+                aria-pressed="true"
                 class="occupation-option selected rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🎓</span>
@@ -181,6 +182,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('professional')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">💼</span>
@@ -192,6 +194,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('educator')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">👨‍🏫</span>
@@ -203,6 +206,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('other')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🌟</span>
@@ -313,21 +317,25 @@
             <div id="question-count-grid" class="grid grid-cols-4 gap-2">
               <button
                 onclick="setQuestionCount(5)"
+                aria-pressed="false"
                 class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
                 5
               </button>
               <button
                 onclick="setQuestionCount(10)"
+                aria-pressed="true"
                 class="cred-select-option active rounded-xl py-3 text-white/70 text-sm font-semibold">
                 10
               </button>
               <button
                 onclick="setQuestionCount(15)"
+                aria-pressed="false"
                 class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
                 15
               </button>
               <button
                 onclick="setQuestionCount(20)"
+                aria-pressed="false"
                 class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
                 20
               </button>
