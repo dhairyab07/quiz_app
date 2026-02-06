@@ -67,10 +67,13 @@ function togglePassword(inputId) {
 function selectOccupation(occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const currentBtn = event.currentTarget;
+  currentBtn.classList.add("selected");
+  currentBtn.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +885,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left" aria-pressed="true">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +896,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left" aria-pressed="false">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -910,8 +913,13 @@ function setCategory(category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const currentBtn = event.currentTarget;
+  currentBtn.classList.add("active");
+  currentBtn.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
@@ -919,8 +927,13 @@ function setQuestionCount(count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const currentBtn = event.currentTarget;
+  currentBtn.classList.add("active");
+  currentBtn.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -972,12 +985,13 @@ function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
 
+  const progressPercent = ((currentQuestion + 1) / currentQuestions.length) * 100;
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  document.getElementById("progress-bar").style.width = `${progressPercent}%`;
+  document.querySelector(".cred-progress-track").setAttribute("aria-valuenow", Math.round(progressPercent));
+
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1002,6 +1016,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  // Focus management: focus first option after animation
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1025,9 +1045,13 @@ function selectAnswer(index, button) {
     document.getElementById("score-display").textContent = score;
   }
 
-  document.getElementById("next-btn").classList.remove("hidden");
-  document.getElementById("next-btn").textContent =
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn.classList.remove("hidden");
+  nextBtn.textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  // Focus management: move focus to next button after interaction
+  setTimeout(() => nextBtn.focus(), 100);
 }
 
 function nextQuestion() {
@@ -1072,9 +1096,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const scoreCircle = document.getElementById("score-circle");
+      scoreCircle.style.setProperty("--score-percent", `${percentage}%`);
+      scoreCircle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1179,5 +1203,48 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+// Global Keyboard Shortcuts
+document.addEventListener("keydown", (e) => {
+  // 1. Handle Menu Shortcuts (Escape to close)
+  if (e.key === "Escape") {
+    const menu = document.getElementById("user-menu");
+    if (!menu.classList.contains("hidden")) {
+      toggleUserMenu();
+    }
+    return;
+  }
+
+  // 2. Handle Quiz Shortcuts (only if quiz is active)
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen.classList.contains("hidden")) return;
+
+  // Next question/Results on Enter
+  const nextBtn = document.getElementById("next-btn");
+  if (e.key === "Enter" && !nextBtn.classList.contains("hidden")) {
+    e.preventDefault();
+    nextQuestion();
+    return;
+  }
+
+  // Answer selection (A-D or 1-4)
+  if (!answered) {
+    const key = e.key.toLowerCase();
+    const options = document.querySelectorAll(".cred-option");
+    if (key === "a" || key === "1") {
+      e.preventDefault();
+      selectAnswer(0, options[0]);
+    } else if (key === "b" || key === "2") {
+      e.preventDefault();
+      selectAnswer(1, options[1]);
+    } else if (key === "c" || key === "3") {
+      e.preventDefault();
+      selectAnswer(2, options[2]);
+    } else if (key === "d" || key === "4") {
+      e.preventDefault();
+      selectAnswer(3, options[3]);
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
