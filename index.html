@@ -15,6 +15,7 @@
     <div class="liquid-shimmer"></div>
 
     <div id="app" class="relative z-10 w-full max-w-md">
+      <div id="aria-announcer" class="sr-only" aria-live="polite"></div>
       <div id="auth-screen" class="cred-card rounded-3xl p-8 fade-in">
         <div class="text-center mb-8">
           <div
@@ -170,6 +171,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('student')"
+                aria-pressed="true"
                 class="occupation-option selected rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🎓</span>
@@ -181,6 +183,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('professional')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">💼</span>
@@ -192,6 +195,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('educator')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">👨‍🏫</span>
@@ -203,6 +207,7 @@
               <button
                 type="button"
                 onclick="selectOccupation('other')"
+                aria-pressed="false"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🌟</span>
@@ -313,21 +318,25 @@
             <div id="question-count-grid" class="grid grid-cols-4 gap-2">
               <button
                 onclick="setQuestionCount(5)"
+                aria-pressed="false"
                 class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
                 5
               </button>
               <button
                 onclick="setQuestionCount(10)"
+                aria-pressed="true"
                 class="cred-select-option active rounded-xl py-3 text-white/70 text-sm font-semibold">
                 10
               </button>
               <button
                 onclick="setQuestionCount(15)"
+                aria-pressed="false"
                 class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
                 15
               </button>
               <button
                 onclick="setQuestionCount(20)"
+                aria-pressed="false"
                 class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
                 20
               </button>
@@ -384,6 +393,10 @@
           <div class="cred-progress-track h-1 mb-8">
             <div
               id="progress-bar"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="10"
               class="cred-progress-fill h-full"
               style="width: 10%"></div>
           </div>
@@ -409,6 +422,10 @@
           <div class="relative w-36 h-36 mx-auto mb-8">
             <div
               id="score-circle"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
               class="score-circle w-full h-full rounded-full flex items-center justify-center"
               style="--score-percent: 0%">
               <div
