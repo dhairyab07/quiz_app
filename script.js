@@ -67,10 +67,12 @@ function togglePassword(inputId) {
 function selectOccupation(occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
   event.currentTarget.classList.add("selected");
+  event.currentTarget.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +884,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory('all')" aria-pressed="true" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +895,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory('${key}')" aria-pressed="false" class="cred-select-option rounded-xl p-3 text-left">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -910,8 +912,12 @@ function setCategory(category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
   event.currentTarget.classList.add("active");
+  event.currentTarget.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
@@ -919,8 +925,12 @@ function setQuestionCount(count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
   event.currentTarget.classList.add("active");
+  event.currentTarget.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -975,9 +985,9 @@ function showQuestion() {
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const progressPercent = ((currentQuestion + 1) / currentQuestions.length) * 100;
+  document.getElementById("progress-bar").style.width = `${progressPercent}%`;
+  document.getElementById("progress-bar").setAttribute("aria-valuenow", Math.round(progressPercent));
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1010,6 +1020,12 @@ function selectAnswer(index, button) {
 
   const question = currentQuestions[currentQuestion];
   userAnswers[currentQuestion] = index;
+
+  const isCorrect = index === question.correct;
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = isCorrect ? "Correct" : "Incorrect";
+  }
 
   const buttons = document.querySelectorAll(".cred-option");
   buttons.forEach((btn, i) => {
@@ -1075,6 +1091,9 @@ function showResults() {
       document
         .getElementById("score-circle")
         .style.setProperty("--score-percent", `${percentage}%`);
+      document
+        .getElementById("score-circle")
+        .setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
