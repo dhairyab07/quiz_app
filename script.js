@@ -972,12 +972,13 @@ function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
 
+  const progress = ((currentQuestion + 1) / currentQuestions.length) * 100;
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progress}%`;
+  progressBar.setAttribute("aria-valuenow", Math.round(progress));
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1002,6 +1003,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  // Focus the first option for keyboard accessibility
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector("button");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1010,6 +1017,14 @@ function selectAnswer(index, button) {
 
   const question = currentQuestions[currentQuestion];
   userAnswers[currentQuestion] = index;
+
+  const isCorrect = index === question.correct;
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = isCorrect
+      ? "Correct!"
+      : `Incorrect. The correct answer was ${question.options[question.correct]}.`;
+  }
 
   const buttons = document.querySelectorAll(".cred-option");
   buttons.forEach((btn, i) => {
@@ -1179,5 +1194,34 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  const quizScreen = document.getElementById("quiz-screen");
+  if (!quizScreen || quizScreen.classList.contains("hidden")) return;
+
+  if (!answered) {
+    const key = e.key.toLowerCase();
+    const options = ["a", "b", "c", "d", "1", "2", "3", "4"];
+    if (options.includes(key)) {
+      e.preventDefault();
+      let index;
+      if (key >= "1" && key <= "4") {
+        index = parseInt(key) - 1;
+      } else {
+        index = key.charCodeAt(0) - 97;
+      }
+      const buttons = document.querySelectorAll(".cred-option");
+      if (buttons[index]) {
+        selectAnswer(index, buttons[index]);
+      }
+    }
+  } else if (e.key === "Enter") {
+    const nextBtn = document.getElementById("next-btn");
+    if (nextBtn && !nextBtn.classList.contains("hidden")) {
+      e.preventDefault();
+      nextQuestion();
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
