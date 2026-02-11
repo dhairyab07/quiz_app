@@ -975,9 +975,11 @@ function showQuestion() {
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const progressPercent = ((currentQuestion + 1) / currentQuestions.length) * 100;
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progressPercent}%`;
+  progressBar.setAttribute("aria-valuenow", progressPercent);
+  progressBar.setAttribute("aria-label", `Question ${currentQuestion + 1} of ${currentQuestions.length}`);
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1002,6 +1004,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  // Focus the first option to help keyboard users after animation
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1020,12 +1028,20 @@ function selectAnswer(index, button) {
     }
   });
 
+  const announcer = document.getElementById("aria-announcer");
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    if (announcer) announcer.textContent = "Correct!";
+  } else {
+    if (announcer)
+      announcer.textContent = `Wrong. The correct answer is ${question.options[question.correct]}.`;
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
+  setTimeout(() => {
+    document.getElementById("next-btn").focus();
+  }, 100);
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
 }
@@ -1181,3 +1197,40 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") {
+    const menu = document.getElementById("user-menu");
+    if (menu && !menu.classList.contains("hidden")) {
+      toggleUserMenu();
+      document.getElementById("user-menu-btn").focus();
+    }
+    return;
+  }
+
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen && !quizScreen.classList.contains("hidden")) {
+    if (!answered) {
+      let index = -1;
+      if (e.key >= "1" && e.key <= "4") {
+        index = parseInt(e.key) - 1;
+      } else if (e.key.toLowerCase() >= "a" && e.key.toLowerCase() <= "d") {
+        index = e.key.toLowerCase().charCodeAt(0) - 97;
+      }
+
+      if (index !== -1) {
+        const buttons = document.querySelectorAll(".cred-option");
+        if (buttons[index]) {
+          e.preventDefault();
+          selectAnswer(index, buttons[index]);
+        }
+      }
+    } else if (e.key === "Enter") {
+      const nextBtn = document.getElementById("next-btn");
+      if (nextBtn && !nextBtn.classList.contains("hidden")) {
+        e.preventDefault();
+        nextQuestion();
+      }
+    }
+  }
+});
