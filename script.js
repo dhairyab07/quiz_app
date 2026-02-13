@@ -975,9 +975,12 @@ function showQuestion() {
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
+  const progress = Math.round(
     ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  );
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progress}%`;
+  progressBar.parentElement.setAttribute("aria-valuenow", progress);
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1020,9 +1023,16 @@ function selectAnswer(index, button) {
     }
   });
 
+  const announcer = document.getElementById("aria-announcer");
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    if (announcer) announcer.textContent = "Correct!";
+  } else {
+    if (announcer)
+      announcer.textContent = `Incorrect. The correct answer is ${
+        question.options[question.correct]
+      }`;
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1072,9 +1082,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const scoreCircle = document.getElementById("score-circle");
+      scoreCircle.style.setProperty("--score-percent", `${percentage}%`);
+      scoreCircle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1181,3 +1191,21 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+// Keyboard Shortcuts & Accessibility
+document.addEventListener("keydown", (e) => {
+  if (e.target.tagName === "INPUT") return;
+  const quizVisible = !document.getElementById("quiz-screen")?.classList.contains("hidden");
+  const key = e.key.toLowerCase();
+  if (quizVisible && /^[1-4a-d]$/.test(key)) {
+    e.preventDefault();
+    const idx = /^[1-4]$/.test(key) ? key - 1 : key.charCodeAt(0) - 97;
+    document.querySelectorAll(".cred-option")[idx]?.click();
+  } else if (quizVisible && key === "enter") {
+    const btn = document.getElementById("next-btn");
+    if (!btn?.classList.contains("hidden")) { e.preventDefault(); btn.click(); }
+  } else if (key === "escape") {
+    const menu = document.getElementById("user-menu");
+    if (!menu?.classList.contains("hidden")) toggleUserMenu();
+  }
+});
