@@ -1,6 +1,13 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = message;
+  }
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -993,7 +1000,9 @@ function showQuestion() {
           <span class="flex items-center gap-3">
               <span class="option-letter">${String.fromCharCode(
                 65 + index
-              )}</span>
+              )}<span class="hidden sm:inline-block ml-1 opacity-30 text-[10px]">${
+      index + 1
+    }</span></span>
               <span class="text-white/70 text-sm font-medium">${option}</span>
           </span>
       `;
@@ -1002,6 +1011,7 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+  announce(`Question ${currentQuestion + 1} of ${currentQuestions.length}: ${question.question}`);
 }
 
 function selectAnswer(index, button) {
@@ -1023,6 +1033,9 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce("Correct!");
+  } else {
+    announce(`Incorrect. The correct answer was ${question.options[question.correct]}`);
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1094,6 +1107,7 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(`Quiz complete. ${message} Your final score is ${score} out of ${currentQuestions.length}.`);
   }, 300);
 }
 
@@ -1179,5 +1193,36 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  const key = e.key.toLowerCase();
+  const quizScreen = document.getElementById("quiz-screen");
+
+  if (!quizScreen.classList.contains("hidden")) {
+    if (["1", "2", "3", "4", "a", "b", "c", "d"].includes(key)) {
+      e.preventDefault();
+      const index = ["1", "2", "3", "4"].includes(key)
+        ? parseInt(key) - 1
+        : ["a", "b", "c", "d"].indexOf(key);
+      const buttons = document.querySelectorAll(".cred-option");
+      if (buttons[index] && !answered) {
+        selectAnswer(index, buttons[index]);
+      }
+    } else if (key === "enter") {
+      const nextBtn = document.getElementById("next-btn");
+      if (!nextBtn.classList.contains("hidden")) {
+        e.preventDefault();
+        nextQuestion();
+      }
+    }
+  }
+
+  if (key === "escape") {
+    const menu = document.getElementById("user-menu");
+    if (!menu.classList.contains("hidden")) {
+      toggleUserMenu();
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
