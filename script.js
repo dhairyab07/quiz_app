@@ -64,13 +64,15 @@ function togglePassword(inputId) {
   }
 }
 
-function selectOccupation(occupation) {
+function selectOccupation(e, occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  e.currentTarget.classList.add("selected");
+  e.currentTarget.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +884,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory(event, 'all')" aria-pressed="true" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +895,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory(event, '${key}')" aria-pressed="false" class="cred-select-option rounded-xl p-3 text-left">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -906,21 +908,29 @@ function initCategories() {
   updateQuizInfo();
 }
 
-function setCategory(category) {
+function setCategory(e, category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  e.currentTarget.classList.add("active");
+  e.currentTarget.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
-function setQuestionCount(count) {
+function setQuestionCount(e, count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  e.currentTarget.classList.add("active");
+  e.currentTarget.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -990,11 +1000,12 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
+          <span class="flex items-center gap-3 w-full">
               <span class="option-letter">${String.fromCharCode(
                 65 + index
               )}</span>
               <span class="text-white/70 text-sm font-medium">${option}</span>
+              <span class="hidden sm:inline-block ml-auto text-[10px] font-bold text-white/20 border border-white/10 rounded px-1.5 py-0.5">${index + 1}</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1020,9 +1031,13 @@ function selectAnswer(index, button) {
     }
   });
 
+  const announcer = document.getElementById("aria-announcer");
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announcer.textContent = "Correct! " + question.options[index];
+  } else {
+    announcer.textContent = "Incorrect. The correct answer is " + question.options[question.correct];
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1181,3 +1196,41 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+// Global keyboard shortcuts
+document.addEventListener('keydown', (e) => {
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+  // Shortcut for options 1-4
+  if (e.key >= '1' && e.key <= '4' && !document.getElementById('quiz-screen').classList.contains('hidden')) {
+    const index = parseInt(e.key) - 1;
+    const options = document.querySelectorAll('.cred-option');
+    if (options[index] && !answered) {
+      e.preventDefault();
+      options[index].click();
+    }
+  }
+
+  // Enter key for primary actions
+  if (e.key === 'Enter') {
+    const nextBtn = document.getElementById('next-btn');
+    if (!document.getElementById('quiz-screen').classList.contains('hidden') && !nextBtn.classList.contains('hidden')) {
+      e.preventDefault();
+      nextQuestion();
+    } else if (!document.getElementById('start-screen').classList.contains('hidden')) {
+      e.preventDefault();
+      startQuiz();
+    } else if (!document.getElementById('result-screen').classList.contains('hidden')) {
+      e.preventDefault();
+      restartQuiz();
+    }
+  }
+
+  // Escape to close user menu
+  if (e.key === 'Escape') {
+    const menu = document.getElementById('user-menu');
+    if (!menu.classList.contains('hidden')) {
+      toggleUserMenu();
+    }
+  }
+});
