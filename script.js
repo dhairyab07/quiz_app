@@ -86,6 +86,16 @@ function showError(elementId, message) {
   el.classList.remove("hidden");
 }
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -975,10 +985,23 @@ function showQuestion() {
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
+
+  const progress = Math.round(
     ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  );
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progress}%`;
+  setTimeout(() => {
+    progressBar.setAttribute("aria-valuenow", progress);
+  }, 100);
+
   document.getElementById("question-text").textContent = question.question;
+
+  announce(
+    `Question ${currentQuestion + 1} of ${currentQuestions.length}: ${
+      question.question
+    }`
+  );
   document.getElementById(
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
@@ -990,11 +1013,16 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
+          <span class="flex items-center justify-between w-full">
+            <span class="flex items-center gap-3">
+                <span class="option-letter">${String.fromCharCode(
+                  65 + index
+                )}</span>
+                <span class="text-white/70 text-sm font-medium">${option}</span>
+            </span>
+            <span class="hidden sm:inline-block text-[10px] text-white/20 font-bold border border-white/10 rounded px-1.5 py-0.5">${
+              index + 1
+            }</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1023,6 +1051,11 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce("Correct!");
+  } else {
+    announce(
+      `Incorrect. The correct answer is ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1179,5 +1212,32 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("quiz-screen").classList.contains("hidden"))
+    return;
+
+  const key = e.key.toLowerCase();
+  if ((key >= "1" && key <= "4") || (key >= "a" && key <= "d")) {
+    let index;
+    if (key >= "1" && key <= "4") {
+      index = parseInt(key) - 1;
+    } else {
+      index = key.charCodeAt(0) - 97;
+    }
+
+    const buttons = document.querySelectorAll(".cred-option");
+    if (buttons[index] && !answered) {
+      e.preventDefault();
+      selectAnswer(index, buttons[index]);
+    }
+  } else if (e.key === "Enter") {
+    const nextBtn = document.getElementById("next-btn");
+    if (!nextBtn.classList.contains("hidden")) {
+      e.preventDefault();
+      nextQuestion();
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
