@@ -1,6 +1,11 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(msg) {
+  const el = document.getElementById("aria-announcer");
+  if (el) { el.textContent = ""; setTimeout(() => el.textContent = msg, 100); }
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -986,22 +991,16 @@ function showQuestion() {
   const optionsContainer = document.getElementById("options-container");
   optionsContainer.innerHTML = "";
 
-  question.options.forEach((option, index) => {
-    const button = document.createElement("button");
-    button.className = "cred-option w-full p-4 rounded-2xl text-left";
-    button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
-          </span>
-      `;
-    button.onclick = () => selectAnswer(index, button);
-    optionsContainer.appendChild(button);
+  question.options.forEach((opt, i) => {
+    const btn = document.createElement("button");
+    btn.className = "cred-option w-full p-4 rounded-2xl text-left";
+    btn.innerHTML = `<span class="flex items-center justify-between w-full"><span class="flex items-center gap-3"><span class="option-letter">${String.fromCharCode(65+i)}</span><span class="text-white/70 text-sm font-medium">${opt}</span></span><span class="hidden sm:inline-block text-[10px] text-white/20 font-bold border border-white/10 rounded px-1.5 py-0.5">${i+1}</span></span>`;
+    btn.onclick = () => selectAnswer(i, btn);
+    optionsContainer.appendChild(btn);
   });
-
   document.getElementById("next-btn").classList.add("hidden");
+  announce(`Question ${currentQuestion + 1} of ${currentQuestions.length}: ${question.question}`);
+  setTimeout(() => optionsContainer.querySelector("button")?.focus(), 350);
 }
 
 function selectAnswer(index, button) {
@@ -1023,11 +1022,11 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
-  }
-
+    announce(`Correct! ${question.options[index]}`);
+  } else announce(`Incorrect. Correct: ${question.options[question.correct]}`);
   document.getElementById("next-btn").classList.remove("hidden");
-  document.getElementById("next-btn").textContent =
-    currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+  setTimeout(() => document.getElementById("next-btn").focus(), 100);
+  document.getElementById("next-btn").textContent = currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
 }
 
 function nextQuestion() {
@@ -1181,3 +1180,13 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("quiz-screen").classList.contains("hidden")) return;
+  const key = e.key.toLowerCase(), opts = document.querySelectorAll(".cred-option");
+  if (/^[1-4a-d]$/.test(key)) {
+    e.preventDefault();
+    if (/^[1-4]$/.test(key)) opts[key - 1]?.click();
+    else opts[key.charCodeAt(0) - 97]?.click();
+  }
+});
