@@ -1,6 +1,11 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(msg) {
+  const el = document.getElementById("aria-announcer");
+  if (el) { el.textContent = ""; setTimeout(() => el.textContent = msg, 100); }
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -990,18 +995,19 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
+          <span class="flex items-center justify-between w-full">
+            <span class="flex items-center gap-3">
+              <span class="option-letter">${String.fromCharCode(65 + index)}</span>
               <span class="text-white/70 text-sm font-medium">${option}</span>
+            </span>
+            <span class="hidden sm:inline-block text-[10px] text-white/20 font-bold border border-white/10 rounded px-1.5 py-0.5">${index + 1}</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
     optionsContainer.appendChild(button);
   });
-
   document.getElementById("next-btn").classList.add("hidden");
+  setTimeout(() => document.querySelector(".cred-option")?.focus(), 350);
 }
 
 function selectAnswer(index, button) {
@@ -1024,10 +1030,12 @@ function selectAnswer(index, button) {
     score++;
     document.getElementById("score-display").textContent = score;
   }
-
+  const fb = index === question.correct ? "Correct!" : `Incorrect. The correct answer is ${question.options[question.correct]}.`;
+  announce(`${fb} You selected ${question.options[index]}.`);
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+  setTimeout(() => document.getElementById("next-btn").focus(), 100);
 }
 
 function nextQuestion() {
@@ -1094,6 +1102,7 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(`${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`);
   }, 300);
 }
 
@@ -1179,5 +1188,13 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("quiz-screen").classList.contains("hidden")) return;
+  const k = e.key.toLowerCase(), btns = document.querySelectorAll(".cred-option");
+  if (k >= "1" && k <= "4" && !answered) { e.preventDefault(); btns[k - 1].click(); }
+  else if (k >= "a" && k <= "d" && !answered) { e.preventDefault(); btns[k.charCodeAt(0) - 97].click(); }
+  else if (k === "enter" && !document.getElementById("next-btn").classList.contains("hidden")) document.getElementById("next-btn").click();
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
