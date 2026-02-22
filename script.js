@@ -990,11 +990,16 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
+          <span class="flex items-center justify-between w-full">
+            <span class="flex items-center gap-3">
+                <span class="option-letter">${String.fromCharCode(
+                  65 + index
+                )}</span>
+                <span class="text-white/70 text-sm font-medium">${option}</span>
+            </span>
+            <span class="hidden sm:inline-block text-[10px] font-bold text-white/20 border border-white/10 rounded px-1.5 py-0.5 uppercase">Key ${
+              index + 1
+            }</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1002,6 +1007,17 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector("button");
+    if (firstOption) firstOption.focus();
+  }, 350);
+
+  announce(
+    `Question ${currentQuestion + 1} of ${currentQuestions.length}: ${
+      question.question
+    }`
+  );
 }
 
 function selectAnswer(index, button) {
@@ -1028,6 +1044,17 @@ function selectAnswer(index, button) {
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  setTimeout(() => {
+    document.getElementById("next-btn").focus();
+  }, 100);
+
+  const isCorrect = index === question.correct;
+  announce(
+    `${isCorrect ? "Correct!" : "Incorrect."} ${
+      isCorrect ? "" : "The correct answer is " + question.options[question.correct]
+    }`
+  );
 }
 
 function nextQuestion() {
@@ -1181,3 +1208,43 @@ function backToResults() {
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
+
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  const quizScreen = document.getElementById("quiz-screen");
+  if (!quizScreen || quizScreen.classList.contains("hidden")) return;
+
+  const key = e.key.toLowerCase();
+  const options = document.querySelectorAll(".cred-option");
+  const nextBtn = document.getElementById("next-btn");
+
+  if (["1", "2", "3", "4"].includes(key)) {
+    const index = parseInt(key) - 1;
+    if (options[index] && !answered) {
+      e.preventDefault();
+      selectAnswer(index, options[index]);
+    }
+  } else if (["a", "b", "c", "d"].includes(key)) {
+    const index = key.charCodeAt(0) - 97;
+    if (options[index] && !answered) {
+      e.preventDefault();
+      selectAnswer(index, options[index]);
+    }
+  } else if (
+    key === "enter" &&
+    nextBtn &&
+    !nextBtn.classList.contains("hidden")
+  ) {
+    e.preventDefault();
+    nextQuestion();
+  }
+});
