@@ -1,6 +1,23 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(msg) {
+  const el = document.getElementById("aria-announcer");
+  if (el) { el.textContent = ""; setTimeout(() => el.textContent = msg, 100); }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("quiz-screen").classList.contains("hidden")) return;
+  const key = e.key.toUpperCase();
+  if (["1", "2", "3", "4", "A", "B", "C", "D"].includes(key)) {
+    const idx = ["1", "2", "3", "4", "A", "B", "C", "D"].indexOf(key) % 4;
+    const btn = document.querySelectorAll(".cred-option")[idx];
+    if (btn && !answered) btn.click();
+  } else if (e.key === "Enter" && !document.getElementById("next-btn").classList.contains("hidden")) {
+    document.getElementById("next-btn").click();
+  }
+});
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -975,9 +992,11 @@ function showQuestion() {
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const pb = document.getElementById("progress-bar");
+  const val = currentQuestion + 1, total = currentQuestions.length;
+  pb.style.width = `${(val / total) * 100}%`;
+  pb.setAttribute("aria-valuenow", val);
+  pb.setAttribute("aria-valuemax", total);
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -1023,6 +1042,9 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(`Incorrect. The correct answer is ${question.options[question.correct]}`);
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
