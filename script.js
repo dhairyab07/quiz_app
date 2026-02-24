@@ -86,6 +86,11 @@ function showError(elementId, message) {
   el.classList.remove("hidden");
 }
 
+function announce(msg) {
+  const el = document.getElementById("aria-announcer");
+  if (el) { el.textContent = ""; setTimeout(() => el.textContent = msg, 100); }
+}
+
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -975,10 +980,13 @@ function showQuestion() {
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const progress = ((currentQuestion + 1) / currentQuestions.length) * 100;
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progress}%`;
+  progressBar.setAttribute("aria-valuenow", Math.round(progress));
+
   document.getElementById("question-text").textContent = question.question;
+  announce(`Question ${currentQuestion + 1}: ${question.question}`);
   document.getElementById(
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
@@ -1023,6 +1031,9 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce("Correct!");
+  } else {
+    announce(`Incorrect. The correct answer is ${question.options[question.correct]}`);
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1072,9 +1083,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const scoreCircle = document.getElementById("score-circle");
+      scoreCircle.style.setProperty("--score-percent", `${percentage}%`);
+      scoreCircle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1094,6 +1105,7 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(`Quiz complete. ${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}`);
   }, 300);
 }
 
@@ -1179,5 +1191,13 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("quiz-screen").classList.contains("hidden")) return;
+  const idx = "abcd".indexOf(e.key.toLowerCase()), nIdx = "1234".indexOf(e.key);
+  const finalIdx = idx !== -1 ? idx : nIdx;
+  if (finalIdx !== -1 && !answered) document.querySelectorAll(".cred-option")[finalIdx]?.click();
+  else if (e.key === "Enter" && !document.getElementById("next-btn").classList.contains("hidden")) nextQuestion();
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
