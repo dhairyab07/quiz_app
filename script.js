@@ -990,12 +990,13 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
-          </span>
+          <div class="flex items-center justify-between">
+            <span class="flex items-center gap-3">
+                <span class="option-letter">${String.fromCharCode(65 + index)}</span>
+                <span class="text-white/70 text-sm font-medium">${option}</span>
+            </span>
+            <span class="hidden sm:inline-block text-[10px] font-bold text-white/20 border border-white/10 rounded px-1.5 py-0.5">${index + 1}</span>
+          </div>
       `;
     button.onclick = () => selectAnswer(index, button);
     optionsContainer.appendChild(button);
@@ -1179,5 +1180,20 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen && !quizScreen.classList.contains("hidden")) {
+    const index = "1234".indexOf(e.key);
+    if (index !== -1 && !answered) {
+      e.preventDefault();
+      const buttons = document.querySelectorAll(".cred-option");
+      if (buttons[index]) buttons[index].click();
+    } else if (e.key === "Enter") {
+      const nextBtn = document.getElementById("next-btn");
+      if (nextBtn && !nextBtn.classList.contains("hidden")) nextBtn.click();
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
