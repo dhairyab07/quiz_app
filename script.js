@@ -1,6 +1,16 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -64,13 +74,15 @@ function togglePassword(inputId) {
   }
 }
 
-function selectOccupation(occupation) {
+function selectOccupation(e, occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  e.currentTarget.classList.add("selected");
+  e.currentTarget.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +894,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory(event, 'all')" class="cred-select-option active rounded-xl p-3 text-left" aria-pressed="true">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +905,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory(event, '${key}')" class="cred-select-option rounded-xl p-3 text-left" aria-pressed="false">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -906,21 +918,29 @@ function initCategories() {
   updateQuizInfo();
 }
 
-function setCategory(category) {
+function setCategory(e, category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  e.currentTarget.classList.add("active");
+  e.currentTarget.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
-function setQuestionCount(count) {
+function setQuestionCount(e, count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  e.currentTarget.classList.add("active");
+  e.currentTarget.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -995,6 +1015,9 @@ function showQuestion() {
                 65 + index
               )}</span>
               <span class="text-white/70 text-sm font-medium">${option}</span>
+              <span class="hidden sm:inline-block text-[10px] text-white/20 ml-auto">${
+                index + 1
+              }</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1002,6 +1025,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  announce(`Question ${currentQuestion + 1}: ${question.question}`);
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector("button");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1020,14 +1049,24 @@ function selectAnswer(index, button) {
     }
   });
 
-  if (index === question.correct) {
+  const isCorrect = index === question.correct;
+  if (isCorrect) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(
+      `Incorrect. The correct answer is ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  setTimeout(() => {
+    document.getElementById("next-btn").focus();
+  }, 100);
 }
 
 function nextQuestion() {
@@ -1094,6 +1133,10 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+
+    announce(
+      `${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
@@ -1179,5 +1222,20 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen.classList.contains("hidden") || answered) return;
+
+  const key = e.key.toLowerCase();
+  const indexMap = { a: 0, b: 1, c: 2, d: 3, 1: 0, 2: 1, 3: 2, 4: 3 };
+
+  if (indexMap.hasOwnProperty(key)) {
+    e.preventDefault();
+    const index = indexMap[key];
+    const buttons = document.querySelectorAll(".cred-option");
+    if (buttons[index]) selectAnswer(index, buttons[index]);
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
