@@ -990,11 +990,16 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
+          <span class="flex items-center justify-between gap-3 w-full">
+              <span class="flex items-center gap-3">
+                  <span class="option-letter">${String.fromCharCode(
+                    65 + index
+                  )}</span>
+                  <span class="text-white/70 text-sm font-medium">${option}</span>
+              </span>
+              <span class="hidden sm:inline-block px-2 py-0.5 rounded bg-white/5 text-[10px] text-white/20 font-bold border border-white/5">${
+                index + 1
+              }</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1002,6 +1007,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  // Focus management: move focus to the first option for accessibility
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1024,6 +1035,12 @@ function selectAnswer(index, button) {
     score++;
     document.getElementById("score-display").textContent = score;
   }
+
+  const feedback =
+    index === question.correct
+      ? `Correct! ${question.options[index]}`
+      : `Incorrect. The correct answer is ${question.options[question.correct]}`;
+  announce(feedback);
 
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
@@ -1094,6 +1111,9 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(
+      `${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
@@ -1179,5 +1199,43 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
+// Global keyboard shortcuts
+document.addEventListener("keydown", (e) => {
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen.classList.contains("hidden")) return;
+
+  const key = e.key.toLowerCase();
+  const options = document.querySelectorAll(".cred-option");
+
+  // 1-4 or A-D for answers
+  if (
+    !answered &&
+    ((key >= "1" && key <= "4") || (key >= "a" && key <= "d"))
+  ) {
+    e.preventDefault();
+    const index =
+      key >= "1" && key <= "4" ? parseInt(key) - 1 : key.charCodeAt(0) - 97;
+    if (options[index]) options[index].click();
+  }
+
+  // Enter for Next button
+  if (key === "Enter") {
+    const nextBtn = document.getElementById("next-btn");
+    if (!nextBtn.classList.contains("hidden")) {
+      nextBtn.click();
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
