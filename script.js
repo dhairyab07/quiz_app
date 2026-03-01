@@ -1,6 +1,20 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+/**
+ * Accessibility: Announces a message to screen readers via #aria-announcer
+ * @param {string} message - The message to announce
+ */
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -14,6 +28,7 @@ function checkAuth() {
 function showAuthScreen() {
   hideAllScreens();
   document.getElementById("auth-screen").classList.remove("hidden");
+  announce("Auth screen loaded. Please login or sign up.");
 }
 
 function showStartScreen() {
@@ -21,6 +36,7 @@ function showStartScreen() {
   updateUserUI();
   document.getElementById("start-screen").classList.remove("hidden");
   initCategories();
+  announce("Start screen loaded. Choose your category and number of questions.");
 }
 
 function hideAllScreens() {
@@ -64,13 +80,15 @@ function togglePassword(inputId) {
   }
 }
 
-function selectOccupation(occupation) {
+function selectOccupation(e, occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  e.currentTarget.classList.add("selected");
+  e.currentTarget.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +900,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory(event, 'all')" aria-pressed="true" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +911,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory(event, '${key}')" aria-pressed="false" class="cred-select-option rounded-xl p-3 text-left">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -906,21 +924,29 @@ function initCategories() {
   updateQuizInfo();
 }
 
-function setCategory(category) {
+function setCategory(e, category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  e.currentTarget.classList.add("active");
+  e.currentTarget.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
-function setQuestionCount(count) {
+function setQuestionCount(e, count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  e.currentTarget.classList.add("active");
+  e.currentTarget.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -988,13 +1014,18 @@ function showQuestion() {
 
   question.options.forEach((option, index) => {
     const button = document.createElement("button");
-    button.className = "cred-option w-full p-4 rounded-2xl text-left";
+    button.className = "cred-option w-full p-4 rounded-2xl text-left group";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
+          <span class="flex items-center justify-between gap-3">
+            <span class="flex items-center gap-3">
+                <span class="option-letter">${String.fromCharCode(
+                  65 + index
+                )}</span>
+                <span class="text-white/70 text-sm font-medium">${option}</span>
+            </span>
+            <span class="hidden sm:inline-block text-[10px] font-bold text-white/20 group-hover:text-[#c9b896]/50 transition-colors uppercase tracking-widest px-2 py-1 rounded-md border border-white/5 group-hover:border-[#c9b896]/20">
+              Press ${index + 1}
+            </span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1023,11 +1054,21 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(
+      `Incorrect. The correct answer is ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  // Focus the "Next" button after selecting an answer for better keyboard flow
+  setTimeout(() => {
+    document.getElementById("next-btn").focus();
+  }, 100);
 }
 
 function nextQuestion() {
@@ -1094,6 +1135,7 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(`${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`);
   }, 300);
 }
 
@@ -1179,5 +1221,28 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  if (
+    document.getElementById("quiz-screen").classList.contains("hidden") ||
+    answered
+  )
+    return;
+
+  const key = e.key.toLowerCase();
+  const options = document.querySelectorAll(".cred-option");
+
+  // Keyboard shortcuts 1-4
+  if (["1", "2", "3", "4"].includes(key)) {
+    const index = parseInt(key) - 1;
+    if (options[index]) selectAnswer(index, options[index]);
+  }
+
+  // Keyboard shortcuts A-D
+  if (["a", "b", "c", "d"].includes(key)) {
+    const index = key.charCodeAt(0) - 97;
+    if (options[index]) selectAnswer(index, options[index]);
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
