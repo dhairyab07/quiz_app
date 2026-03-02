@@ -990,18 +990,24 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
-          </span>
+          <div class="flex items-center justify-between w-full">
+            <span class="flex items-center gap-3">
+                <span class="option-letter">${String.fromCharCode(
+                  65 + index
+                )}</span>
+                <span class="text-white/70 text-sm font-medium">${option}</span>
+            </span>
+            <span class="hidden sm:inline-block text-[10px] font-bold text-white/20 border border-white/10 rounded px-1.5 py-0.5 uppercase tracking-wider">${
+              index + 1
+            }</span>
+          </div>
       `;
     button.onclick = () => selectAnswer(index, button);
     optionsContainer.appendChild(button);
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+  announce(`Question ${currentQuestion + 1}. ${question.question}`);
 }
 
 function selectAnswer(index, button) {
@@ -1023,11 +1029,20 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(
+      `Incorrect. The correct answer is ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  setTimeout(() => {
+    document.getElementById("next-btn").focus();
+  }, 100);
 }
 
 function nextQuestion() {
@@ -1094,6 +1109,10 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+
+    announce(
+      `${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
@@ -1179,5 +1198,37 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
+document.addEventListener("keydown", (e) => {
+  if (document.getElementById("quiz-screen").classList.contains("hidden"))
+    return;
+  if (answered) return;
+
+  const key = e.key.toLowerCase();
+  let index = -1;
+
+  if (key === "a" || key === "1") index = 0;
+  else if (key === "b" || key === "2") index = 1;
+  else if (key === "c" || key === "3") index = 2;
+  else if (key === "d" || key === "4") index = 3;
+
+  if (index !== -1) {
+    const buttons = document.querySelectorAll(".cred-option");
+    if (buttons[index]) {
+      e.preventDefault();
+      selectAnswer(index, buttons[index]);
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
