@@ -1,6 +1,16 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -972,12 +982,15 @@ function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
 
-  document.getElementById("question-counter").textContent = `${
-    currentQuestion + 1
-  } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const qCount = currentQuestions.length;
+  const qIndex = currentQuestion + 1;
+  const progressPercent = Math.round((qIndex / qCount) * 100);
+
+  document.getElementById("question-counter").textContent = `${qIndex} / ${qCount}`;
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progressPercent}%`;
+  progressBar.setAttribute("aria-valuenow", progressPercent);
+
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -991,10 +1004,9 @@ function showQuestion() {
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
           <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
+              <span class="option-letter">${String.fromCharCode(65 + index)}</span>
               <span class="text-white/70 text-sm font-medium">${option}</span>
+              <span class="hidden sm:inline-block ml-auto text-[10px] text-white/20 font-bold border border-white/10 rounded px-1.5 py-0.5">${index + 1}</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1002,6 +1014,10 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1020,14 +1036,21 @@ function selectAnswer(index, button) {
     }
   });
 
-  if (index === question.correct) {
+  const isCorrect = index === question.correct;
+  if (isCorrect) {
     score++;
     document.getElementById("score-display").textContent = score;
   }
 
-  document.getElementById("next-btn").classList.remove("hidden");
-  document.getElementById("next-btn").textContent =
-    currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+  const feedback = isCorrect
+    ? `Correct! ${question.options[index]}`
+    : `Incorrect. The correct answer is ${question.options[question.correct]}`;
+  announce(feedback);
+
+  const nextBtn = document.getElementById("next-btn");
+  nextBtn.classList.remove("hidden");
+  nextBtn.textContent = currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+  setTimeout(() => nextBtn.focus(), 100);
 }
 
 function nextQuestion() {
@@ -1072,9 +1095,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const scoreCircle = document.getElementById("score-circle");
+      scoreCircle.style.setProperty("--score-percent", `${percentage}%`);
+      scoreCircle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1094,6 +1117,7 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(`${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`);
   }, 300);
 }
 
@@ -1179,5 +1203,22 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+document.addEventListener("keydown", (e) => {
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen && !quizScreen.classList.contains("hidden")) {
+    const key = e.key.toLowerCase();
+    const options = document.querySelectorAll(".cred-option");
+
+    let index = -1;
+    if (key >= "1" && key <= "4") index = parseInt(key) - 1;
+    if (key >= "a" && key <= "d") index = key.charCodeAt(0) - 97;
+
+    if (index >= 0 && index < options.length) {
+      e.preventDefault();
+      options[index].click();
+    }
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
