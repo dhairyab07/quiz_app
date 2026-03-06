@@ -15,6 +15,13 @@
     <div class="liquid-shimmer"></div>
 
     <div id="app" class="relative z-10 w-full max-w-md">
+      <!-- Screen Reader Announcer -->
+      <div
+        id="aria-announcer"
+        class="sr-only"
+        aria-live="polite"
+        aria-atomic="true"></div>
+
       <div id="auth-screen" class="cred-card rounded-3xl p-8 fade-in">
         <div class="text-center mb-8">
           <div
@@ -410,6 +417,10 @@
             <div
               id="score-circle"
               class="score-circle w-full h-full rounded-full flex items-center justify-center"
+              role="progressbar"
+              aria-valuenow="0"
+              aria-valuemin="0"
+              aria-valuemax="100"
               style="--score-percent: 0%">
               <div
                 class="score-inner w-28 h-28 rounded-full flex flex-col items-center justify-center">

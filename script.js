@@ -990,11 +990,16 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
+          <span class="flex items-center justify-between gap-3 w-full">
+              <span class="flex items-center gap-3">
+                  <span class="option-letter">${String.fromCharCode(
+                    65 + index
+                  )}</span>
+                  <span class="text-white/70 text-sm font-medium">${option}</span>
+              </span>
+              <span class="hidden sm:inline-block text-[10px] text-white/20 font-bold bg-white/5 px-1.5 py-0.5 rounded border border-white/5">${
+                index + 1
+              }</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1002,6 +1007,12 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  // Focus the first option for keyboard navigation
+  setTimeout(() => {
+    const firstOption = optionsContainer.querySelector(".cred-option");
+    if (firstOption) firstOption.focus();
+  }, 350);
 }
 
 function selectAnswer(index, button) {
@@ -1023,11 +1034,21 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(
+      `Incorrect. The correct answer is ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
+
+  // Focus next button
+  setTimeout(() => {
+    document.getElementById("next-btn").focus();
+  }, 100);
 }
 
 function nextQuestion() {
@@ -1072,9 +1093,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const circle = document.getElementById("score-circle");
+      circle.style.setProperty("--score-percent", `${percentage}%`);
+      circle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1094,6 +1115,10 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+
+    announce(
+      `${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
@@ -1179,5 +1204,31 @@ function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
 }
+
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (!announcer) return;
+  announcer.textContent = "";
+  setTimeout(() => {
+    announcer.textContent = message;
+  }, 100);
+}
+
+document.addEventListener("keydown", (e) => {
+  const quizScreen = document.getElementById("quiz-screen");
+  if (quizScreen.classList.contains("hidden")) return;
+
+  if (e.key >= "1" && e.key <= "4") {
+    const buttons = document.querySelectorAll(".cred-option");
+    if (buttons[e.key - 1]) buttons[e.key - 1].click();
+  } else if (e.key.toLowerCase() >= "a" && e.key.toLowerCase() <= "d") {
+    const index = e.key.toLowerCase().charCodeAt(0) - 97;
+    const buttons = document.querySelectorAll(".cred-option");
+    if (buttons[index]) buttons[index].click();
+  } else if (e.key === "Enter") {
+    const nextBtn = document.getElementById("next-btn");
+    if (!nextBtn.classList.contains("hidden")) nextBtn.click();
+  }
+});
 
 document.addEventListener("DOMContentLoaded", checkAuth);
