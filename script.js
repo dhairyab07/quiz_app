@@ -1,6 +1,16 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -972,13 +982,15 @@ function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
 
+  const progress = Math.round(((currentQuestion + 1) / currentQuestions.length) * 100);
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progress}%`;
+  progressBar.setAttribute("aria-valuenow", progress);
   document.getElementById("question-text").textContent = question.question;
+  announce(`Question ${currentQuestion + 1}: ${question.question}`);
   document.getElementById(
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
@@ -990,12 +1002,13 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
+          <div class="flex items-center justify-between w-full">
+            <span class="flex items-center gap-3">
+              <span class="option-letter">${String.fromCharCode(65 + index)}</span>
               <span class="text-white/70 text-sm font-medium">${option}</span>
-          </span>
+            </span>
+            <span class="hidden sm:inline-block px-2 py-0.5 rounded border border-white/10 text-[10px] text-white/30 font-bold">${index + 1}</span>
+          </div>
       `;
     button.onclick = () => selectAnswer(index, button);
     optionsContainer.appendChild(button);
@@ -1029,6 +1042,9 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(`Incorrect. The correct answer is ${question.options[question.correct]}`);
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1079,9 +1095,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const scoreCircle = document.getElementById("score-circle");
+      scoreCircle.style.setProperty("--score-percent", `${percentage}%`);
+      scoreCircle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1101,6 +1117,7 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(`${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`);
   }, 300);
 }
 
