@@ -64,13 +64,15 @@ function togglePassword(inputId) {
   }
 }
 
-function selectOccupation(occupation) {
+function selectOccupation(e, occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  e.currentTarget.classList.add("selected");
+  e.currentTarget.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -212,6 +214,16 @@ function handleLogout() {
   clearErrors();
 
   showAuthScreen();
+}
+
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
 }
 
 function updateUserUI() {
@@ -882,7 +894,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory(event, 'all')" class="cred-select-option active rounded-xl p-3 text-left" aria-pressed="true">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +905,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory(event, '${key}')" class="cred-select-option rounded-xl p-3 text-left" aria-pressed="false">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -906,21 +918,29 @@ function initCategories() {
   updateQuizInfo();
 }
 
-function setCategory(category) {
+function setCategory(e, category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  e.currentTarget.classList.add("active");
+  e.currentTarget.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
-function setQuestionCount(count) {
+function setQuestionCount(e, count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  e.currentTarget.classList.add("active");
+  e.currentTarget.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -972,16 +992,21 @@ function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
 
+  const progressPercent =
+    ((currentQuestion + 1) / currentQuestions.length) * 100;
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  document.getElementById("progress-bar").style.width = `${progressPercent}%`;
+  document
+    .getElementById("progress-bar")
+    .parentElement.setAttribute("aria-valuenow", Math.round(progressPercent));
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
+
+  announce(`Question ${currentQuestion + 1}: ${question.question}`);
 
   const optionsContainer = document.getElementById("options-container");
   optionsContainer.innerHTML = "";
@@ -1029,6 +1054,11 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(
+      `Incorrect. The correct answer is ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1079,9 +1109,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const circle = document.getElementById("score-circle");
+      circle.style.setProperty("--score-percent", `${percentage}%`);
+      circle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1116,9 +1146,9 @@ function restartQuiz() {
     document.getElementById("result-screen").classList.remove("fade-out");
     document.getElementById("score-display").textContent = "0";
     document.getElementById("quiz-screen").classList.remove("hidden");
-    document
-      .getElementById("score-circle")
-      .style.setProperty("--score-percent", "0%");
+    const circle = document.getElementById("score-circle");
+    circle.style.setProperty("--score-percent", "0%");
+    circle.setAttribute("aria-valuenow", "0");
     showQuestion();
   }, 300);
 }
@@ -1129,9 +1159,9 @@ function goHome() {
     document.getElementById("result-screen").classList.add("hidden");
     document.getElementById("result-screen").classList.remove("fade-out");
     document.getElementById("review-screen").classList.add("hidden");
-    document
-      .getElementById("score-circle")
-      .style.setProperty("--score-percent", "0%");
+    const circle = document.getElementById("score-circle");
+    circle.style.setProperty("--score-percent", "0%");
+    circle.setAttribute("aria-valuenow", "0");
     document.getElementById("start-screen").classList.remove("hidden");
   }, 300);
 }
