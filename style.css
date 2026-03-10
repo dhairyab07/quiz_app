@@ -321,6 +321,23 @@ body {
   }
 }
 
+@keyframes shake {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  25% {
+    transform: translateX(-8px);
+  }
+  75% {
+    transform: translateX(8px);
+  }
+}
+
+.shake {
+  animation: shake 0.3s ease-in-out;
+}
+
 .cred-heading {
   color: rgba(255, 255, 255, 0.95);
   font-weight: 700;
