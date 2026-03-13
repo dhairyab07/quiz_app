@@ -1,6 +1,15 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (!announcer) return;
+  announcer.textContent = "";
+  setTimeout(() => {
+    announcer.textContent = message;
+  }, 100);
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -64,13 +73,16 @@ function togglePassword(inputId) {
   }
 }
 
-function selectOccupation(occupation) {
+function selectOccupation(event, occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const target = event.currentTarget || event.target.closest("button");
+  target.classList.add("selected");
+  target.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +894,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory(event, 'all')" aria-pressed="true" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +905,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory(event, '${key}')" aria-pressed="false" class="cred-select-option rounded-xl p-3 text-left">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -906,21 +918,27 @@ function initCategories() {
   updateQuizInfo();
 }
 
-function setCategory(category) {
+function setCategory(event, category) {
   selectedCategory = category;
-  document
-    .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+  document.querySelectorAll("#category-grid .cred-select-option").forEach((btn) => {
+    btn.classList.remove("active");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const target = event.currentTarget || event.target.closest("button");
+  target.classList.add("active");
+  target.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
-function setQuestionCount(count) {
+function setQuestionCount(event, count) {
   selectedQuestionCount = count;
-  document
-    .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+  document.querySelectorAll("#question-count-grid .cred-select-option").forEach((btn) => {
+    btn.classList.remove("active");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const target = event.currentTarget || event.target.closest("button");
+  target.classList.add("active");
+  target.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -983,6 +1001,8 @@ function showQuestion() {
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
 
+  announce(`Question ${currentQuestion + 1}: ${question.question}`);
+
   const optionsContainer = document.getElementById("options-container");
   optionsContainer.innerHTML = "";
 
@@ -990,11 +1010,16 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
+          <span class="flex items-center justify-between w-full">
+              <span class="flex items-center gap-3">
+                  <span class="option-letter">${String.fromCharCode(
+                    65 + index
+                  )}</span>
+                  <span class="text-white/70 text-sm font-medium">${option}</span>
+              </span>
+              <span class="hidden sm:inline-block px-2 py-0.5 rounded border border-white/10 text-[10px] text-white/30 font-bold ml-2">
+                ${index + 1}
+              </span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1029,6 +1054,11 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(
+      `Incorrect. The correct answer was ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1101,6 +1131,10 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+
+    announce(
+      `${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
