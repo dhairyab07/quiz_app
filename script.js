@@ -11,6 +11,16 @@ function checkAuth() {
   }
 }
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
 function showAuthScreen() {
   hideAllScreens();
   document.getElementById("auth-screen").classList.remove("hidden");
@@ -64,13 +74,16 @@ function togglePassword(inputId) {
   }
 }
 
-function selectOccupation(occupation) {
+function selectOccupation(e, occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const target = e.currentTarget || e.target.closest("button");
+  target.classList.add("selected");
+  target.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +895,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory(event, 'all')" aria-pressed="true" class="cred-select-option active rounded-xl p-3 text-left">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +906,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory(event, '${key}')" aria-pressed="false" class="cred-select-option rounded-xl p-3 text-left">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -906,21 +919,31 @@ function initCategories() {
   updateQuizInfo();
 }
 
-function setCategory(category) {
+function setCategory(e, category) {
   selectedCategory = category;
   document
     .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const target = e.currentTarget || e.target.closest("button");
+  target.classList.add("active");
+  target.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
-function setQuestionCount(count) {
+function setQuestionCount(e, count) {
   selectedQuestionCount = count;
   document
     .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+    .forEach((btn) => {
+      btn.classList.remove("active");
+      btn.setAttribute("aria-pressed", "false");
+    });
+  const target = e.currentTarget || e.target.closest("button");
+  target.classList.add("active");
+  target.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -971,13 +994,17 @@ function startQuiz() {
 function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
+  const progress = Math.round(
+    ((currentQuestion + 1) / currentQuestions.length) * 100
+  );
 
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  const progressBar = document.getElementById("progress-bar");
+  progressBar.style.width = `${progress}%`;
+  progressBar.setAttribute("aria-valuenow", progress);
+
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
@@ -990,11 +1017,16 @@ function showQuestion() {
     const button = document.createElement("button");
     button.className = "cred-option w-full p-4 rounded-2xl text-left";
     button.innerHTML = `
-          <span class="flex items-center gap-3">
-              <span class="option-letter">${String.fromCharCode(
-                65 + index
-              )}</span>
-              <span class="text-white/70 text-sm font-medium">${option}</span>
+          <span class="flex items-center justify-between w-full">
+              <span class="flex items-center gap-3">
+                  <span class="option-letter">${String.fromCharCode(
+                    65 + index
+                  )}</span>
+                  <span class="text-white/70 text-sm font-medium">${option}</span>
+              </span>
+              <span class="hidden sm:inline-block px-2 py-0.5 rounded border border-white/10 text-[10px] text-white/30 font-bold">${
+                index + 1
+              }</span>
           </span>
       `;
     button.onclick = () => selectAnswer(index, button);
@@ -1002,6 +1034,8 @@ function showQuestion() {
   });
 
   document.getElementById("next-btn").classList.add("hidden");
+
+  announce(`Question ${currentQuestion + 1}: ${question.question}`);
 
   // Focus first option for keyboard accessibility
   setTimeout(() => {
@@ -1016,25 +1050,29 @@ function selectAnswer(index, button) {
 
   const question = currentQuestions[currentQuestion];
   userAnswers[currentQuestion] = index;
+  const isCorrect = index === question.correct;
 
   const buttons = document.querySelectorAll(".cred-option");
   buttons.forEach((btn, i) => {
     if (i === question.correct) {
       btn.classList.add("correct");
-    } else if (i === index && index !== question.correct) {
+    } else if (i === index && !isCorrect) {
       btn.classList.add("wrong");
     }
   });
 
-  if (index === question.correct) {
+  if (isCorrect) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(`Incorrect. The correct answer is ${question.options[question.correct]}`);
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
-  document.getElementById("next-btn").focus();
+  setTimeout(() => document.getElementById("next-btn").focus(), 100);
 }
 
 function nextQuestion() {
@@ -1079,9 +1117,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const circle = document.getElementById("score-circle");
+      circle.style.setProperty("--score-percent", `${percentage}%`);
+      circle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1101,6 +1139,7 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(`${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`);
   }, 300);
 }
 
