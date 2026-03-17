@@ -15,6 +15,7 @@
     <div class="liquid-shimmer"></div>
 
     <div id="app" class="relative z-10 w-full max-w-md">
+      <div id="aria-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
       <div id="auth-screen" class="cred-card rounded-3xl p-8 fade-in">
         <div class="text-center mb-8">
           <div
@@ -169,8 +170,9 @@
             <div id="occupation-grid" class="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onclick="selectOccupation('student')"
-                class="occupation-option selected rounded-xl py-3 px-4 text-left">
+                onclick="selectOccupation(event, 'student')"
+                class="occupation-option selected rounded-xl py-3 px-4 text-left"
+                aria-pressed="true">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🎓</span>
                   <span class="text-white/70 text-xs font-semibold"
@@ -180,8 +182,9 @@
               </button>
               <button
                 type="button"
-                onclick="selectOccupation('professional')"
-                class="occupation-option rounded-xl py-3 px-4 text-left">
+                onclick="selectOccupation(event, 'professional')"
+                class="occupation-option rounded-xl py-3 px-4 text-left"
+                aria-pressed="false">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">💼</span>
                   <span class="text-white/70 text-xs font-semibold"
@@ -191,8 +194,9 @@
               </button>
               <button
                 type="button"
-                onclick="selectOccupation('educator')"
-                class="occupation-option rounded-xl py-3 px-4 text-left">
+                onclick="selectOccupation(event, 'educator')"
+                class="occupation-option rounded-xl py-3 px-4 text-left"
+                aria-pressed="false">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">👨‍🏫</span>
                   <span class="text-white/70 text-xs font-semibold"
@@ -202,8 +206,9 @@
               </button>
               <button
                 type="button"
-                onclick="selectOccupation('other')"
-                class="occupation-option rounded-xl py-3 px-4 text-left">
+                onclick="selectOccupation(event, 'other')"
+                class="occupation-option rounded-xl py-3 px-4 text-left"
+                aria-pressed="false">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🌟</span>
                   <span class="text-white/70 text-xs font-semibold">Other</span>
@@ -312,23 +317,27 @@
             <label class="cred-label mb-3 block px-1">Questions</label>
             <div id="question-count-grid" class="grid grid-cols-4 gap-2">
               <button
-                onclick="setQuestionCount(5)"
-                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
+                onclick="setQuestionCount(event, 5)"
+                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold"
+                aria-pressed="false">
                 5
               </button>
               <button
-                onclick="setQuestionCount(10)"
-                class="cred-select-option active rounded-xl py-3 text-white/70 text-sm font-semibold">
+                onclick="setQuestionCount(event, 10)"
+                class="cred-select-option active rounded-xl py-3 text-white/70 text-sm font-semibold"
+                aria-pressed="true">
                 10
               </button>
               <button
-                onclick="setQuestionCount(15)"
-                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
+                onclick="setQuestionCount(event, 15)"
+                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold"
+                aria-pressed="false">
                 15
               </button>
               <button
-                onclick="setQuestionCount(20)"
-                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold">
+                onclick="setQuestionCount(event, 20)"
+                class="cred-select-option rounded-xl py-3 text-white/70 text-sm font-semibold"
+                aria-pressed="false">
                 20
               </button>
             </div>
@@ -381,7 +390,7 @@
             >
           </div>
 
-          <div class="cred-progress-track h-1 mb-8">
+          <div class="cred-progress-track h-1 mb-8" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="10">
             <div
               id="progress-bar"
               class="cred-progress-fill h-full"
@@ -410,6 +419,10 @@
             <div
               id="score-circle"
               class="score-circle w-full h-full rounded-full flex items-center justify-center"
+              role="progressbar"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0"
               style="--score-percent: 0%">
               <div
                 class="score-inner w-28 h-28 rounded-full flex flex-col items-center justify-center">

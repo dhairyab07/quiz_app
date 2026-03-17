@@ -1,6 +1,16 @@
 let currentUser = null;
 let selectedOccupation = "student";
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
 function checkAuth() {
   const savedUser = localStorage.getItem("quizUser");
   if (savedUser) {
@@ -64,13 +74,16 @@ function togglePassword(inputId) {
   }
 }
 
-function selectOccupation(occupation) {
+function selectOccupation(event, occupation) {
   selectedOccupation = occupation;
   document.getElementById("signup-occupation").value = occupation;
-  document
-    .querySelectorAll(".occupation-option")
-    .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  document.querySelectorAll(".occupation-option").forEach((btn) => {
+    btn.classList.remove("selected");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const currentTarget = event.currentTarget || event.target.closest("button");
+  currentTarget.classList.add("selected");
+  currentTarget.setAttribute("aria-pressed", "true");
 }
 
 function clearErrors() {
@@ -882,7 +895,7 @@ function initCategories() {
   const grid = document.getElementById("category-grid");
 
   let html = `
-      <button onclick="setCategory('all')" class="cred-select-option active rounded-xl p-3 text-left">
+      <button onclick="setCategory(event, 'all')" class="cred-select-option active rounded-xl p-3 text-left" aria-pressed="true">
           <div class="flex items-center gap-2">
               <span class="category-icon" aria-hidden="true">🎯</span>
               <span class="text-white/70 text-xs font-semibold">All</span>
@@ -893,7 +906,7 @@ function initCategories() {
   Object.keys(questionBank).forEach((key) => {
     const cat = questionBank[key];
     html += `
-          <button onclick="setCategory('${key}')" class="cred-select-option rounded-xl p-3 text-left">
+          <button onclick="setCategory(event, '${key}')" class="cred-select-option rounded-xl p-3 text-left" aria-pressed="false">
               <div class="flex items-center gap-2">
                   <span class="category-icon" aria-hidden="true">${cat.icon}</span>
                   <span class="text-white/70 text-xs font-semibold">${cat.name}</span>
@@ -906,21 +919,27 @@ function initCategories() {
   updateQuizInfo();
 }
 
-function setCategory(category) {
+function setCategory(event, category) {
   selectedCategory = category;
-  document
-    .querySelectorAll("#category-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+  document.querySelectorAll("#category-grid .cred-select-option").forEach((btn) => {
+    btn.classList.remove("active");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const currentTarget = event.currentTarget || event.target.closest("button");
+  currentTarget.classList.add("active");
+  currentTarget.setAttribute("aria-pressed", "true");
   updateQuizInfo();
 }
 
-function setQuestionCount(count) {
+function setQuestionCount(event, count) {
   selectedQuestionCount = count;
-  document
-    .querySelectorAll("#question-count-grid .cred-select-option")
-    .forEach((btn) => btn.classList.remove("active"));
-  event.currentTarget.classList.add("active");
+  document.querySelectorAll("#question-count-grid .cred-select-option").forEach((btn) => {
+    btn.classList.remove("active");
+    btn.setAttribute("aria-pressed", "false");
+  });
+  const currentTarget = event.currentTarget || event.target.closest("button");
+  currentTarget.classList.add("active");
+  currentTarget.setAttribute("aria-pressed", "true");
   document.getElementById("selected-count").textContent = count;
   updateQuizInfo();
 }
@@ -971,17 +990,19 @@ function startQuiz() {
 function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
+  const progress = Math.round(((currentQuestion + 1) / currentQuestions.length) * 100);
 
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
-  document.getElementById("progress-bar").style.width = `${
-    ((currentQuestion + 1) / currentQuestions.length) * 100
-  }%`;
+  document.getElementById("progress-bar").style.width = `${progress}%`;
+  document.querySelector('.cred-progress-track').setAttribute('aria-valuenow', progress);
   document.getElementById("question-text").textContent = question.question;
   document.getElementById(
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
+
+  announce(`Question ${currentQuestion + 1}: ${question.question}`);
 
   const optionsContainer = document.getElementById("options-container");
   optionsContainer.innerHTML = "";
@@ -1015,6 +1036,12 @@ function selectAnswer(index, button) {
   answered = true;
 
   const question = currentQuestions[currentQuestion];
+  const isCorrect = index === question.correct;
+  announce(
+    isCorrect
+      ? `Correct! ${question.options[index]}`
+      : `Incorrect. The correct answer is ${question.options[question.correct]}`
+  );
   userAnswers[currentQuestion] = index;
 
   const buttons = document.querySelectorAll(".cred-option");
@@ -1079,9 +1106,9 @@ function showResults() {
     ).textContent = `out of ${currentQuestions.length}`;
 
     setTimeout(() => {
-      document
-        .getElementById("score-circle")
-        .style.setProperty("--score-percent", `${percentage}%`);
+      const circle = document.getElementById("score-circle");
+      circle.style.setProperty("--score-percent", `${percentage}%`);
+      circle.setAttribute("aria-valuenow", Math.round(percentage));
     }, 100);
 
     let message, subtitle;
@@ -1101,6 +1128,7 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+    announce(`${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`);
   }, 300);
 }
 
