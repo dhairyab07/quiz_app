@@ -983,6 +983,12 @@ function showQuestion() {
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
 
+  announce(
+    `Question ${currentQuestion + 1} of ${currentQuestions.length}: ${
+      question.question
+    }`
+  );
+
   const optionsContainer = document.getElementById("options-container");
   optionsContainer.innerHTML = "";
 
@@ -1029,6 +1035,11 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(
+      `Incorrect. The correct answer is ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1101,6 +1112,10 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+
+    announce(
+      `${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
@@ -1185,6 +1200,16 @@ function showAnswers() {
 function backToResults() {
   document.getElementById("review-screen").classList.add("hidden");
   document.getElementById("result-screen").classList.remove("hidden");
+}
+
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
 }
 
 document.addEventListener("DOMContentLoaded", checkAuth);
