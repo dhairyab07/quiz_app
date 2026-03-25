@@ -15,6 +15,7 @@
     <div class="liquid-shimmer"></div>
 
     <div id="app" class="relative z-10 w-full max-w-md">
+      <div id="aria-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
       <div id="auth-screen" class="cred-card rounded-3xl p-8 fade-in">
         <div class="text-center mb-8">
           <div
@@ -169,7 +170,7 @@
             <div id="occupation-grid" class="grid grid-cols-2 gap-2">
               <button
                 type="button"
-                onclick="selectOccupation('student')"
+                onclick="selectOccupation(event, 'student')"
                 class="occupation-option selected rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🎓</span>
@@ -180,7 +181,7 @@
               </button>
               <button
                 type="button"
-                onclick="selectOccupation('professional')"
+                onclick="selectOccupation(event, 'professional')"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">💼</span>
@@ -191,7 +192,7 @@
               </button>
               <button
                 type="button"
-                onclick="selectOccupation('educator')"
+                onclick="selectOccupation(event, 'educator')"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">👨‍🏫</span>
@@ -202,7 +203,7 @@
               </button>
               <button
                 type="button"
-                onclick="selectOccupation('other')"
+                onclick="selectOccupation(event, 'other')"
                 class="occupation-option rounded-xl py-3 px-4 text-left">
                 <div class="flex items-center gap-2">
                   <span class="text-lg" aria-hidden="true">🌟</span>
