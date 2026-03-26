@@ -70,7 +70,19 @@ function selectOccupation(occupation) {
   document
     .querySelectorAll(".occupation-option")
     .forEach((btn) => btn.classList.remove("selected"));
-  event.currentTarget.classList.add("selected");
+  // Use the event object to target the clicked element
+  if (event && event.currentTarget) {
+    event.currentTarget.classList.add("selected");
+  }
+}
+
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (!announcer) return;
+  announcer.textContent = "";
+  setTimeout(() => {
+    announcer.textContent = message;
+  }, 100);
 }
 
 function clearErrors() {
@@ -972,6 +984,12 @@ function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
 
+  announce(
+    `Question ${currentQuestion + 1} of ${currentQuestions.length}: ${
+      question.question
+    }`
+  );
+
   document.getElementById("question-counter").textContent = `${
     currentQuestion + 1
   } / ${currentQuestions.length}`;
@@ -1026,10 +1044,17 @@ function selectAnswer(index, button) {
     }
   });
 
-  if (index === question.correct) {
+  const isCorrect = index === question.correct;
+  if (isCorrect) {
     score++;
     document.getElementById("score-display").textContent = score;
   }
+
+  announce(
+    `${isCorrect ? "Correct!" : "Incorrect."} The correct answer is ${
+      question.options[question.correct]
+    }.`
+  );
 
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
@@ -1101,6 +1126,10 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+
+    announce(
+      `${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
