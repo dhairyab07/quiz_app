@@ -44,11 +44,13 @@ function switchAuthTab(tab) {
     signupTab.classList.remove("active");
     loginForm.classList.remove("hidden");
     signupForm.classList.add("hidden");
+    announce("Switched to login form");
   } else {
     signupTab.classList.add("active");
     loginTab.classList.remove("active");
     signupForm.classList.remove("hidden");
     loginForm.classList.add("hidden");
+    announce("Switched to sign up form");
   }
 }
 
@@ -84,6 +86,15 @@ function showError(elementId, message) {
   const el = document.getElementById(elementId);
   el.textContent = message;
   el.classList.remove("hidden");
+}
+
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (!announcer) return;
+  announcer.textContent = "";
+  setTimeout(() => {
+    announcer.textContent = message;
+  }, 100);
 }
 
 function validateEmail(email) {
@@ -983,6 +994,12 @@ function showQuestion() {
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
 
+  announce(
+    `Question ${currentQuestion + 1} of ${currentQuestions.length}: ${
+      question.question
+    }`
+  );
+
   const optionsContainer = document.getElementById("options-container");
   optionsContainer.innerHTML = "";
 
@@ -1029,12 +1046,22 @@ function selectAnswer(index, button) {
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${question.options[index]}`);
+  } else {
+    announce(
+      `Incorrect. You chose ${question.options[index]}. The correct answer is ${
+        question.options[question.correct]
+      }.`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
   document.getElementById("next-btn").textContent =
     currentQuestion === currentQuestions.length - 1 ? "See Results" : "Next";
-  document.getElementById("next-btn").focus();
+
+  setTimeout(() => {
+    document.getElementById("next-btn").focus();
+  }, 100);
 }
 
 function nextQuestion() {
@@ -1101,6 +1128,10 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+
+    announce(
+      `${message} ${subtitle}. Your final score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
