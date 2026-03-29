@@ -86,6 +86,16 @@ function showError(elementId, message) {
   el.classList.remove("hidden");
 }
 
+function announce(message) {
+  const announcer = document.getElementById("aria-announcer");
+  if (announcer) {
+    announcer.textContent = "";
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
+
 function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
@@ -972,13 +982,14 @@ function showQuestion() {
   answered = false;
   const question = currentQuestions[currentQuestion];
 
-  document.getElementById("question-counter").textContent = `${
-    currentQuestion + 1
-  } / ${currentQuestions.length}`;
+  const counterText = `${currentQuestion + 1} / ${currentQuestions.length}`;
+  document.getElementById("question-counter").textContent = counterText;
   document.getElementById("progress-bar").style.width = `${
     ((currentQuestion + 1) / currentQuestions.length) * 100
   }%`;
   document.getElementById("question-text").textContent = question.question;
+
+  announce(`Question ${counterText}: ${question.question}`);
   document.getElementById(
     "category-badge"
   ).textContent = `${question.icon} ${question.category}`;
@@ -1026,9 +1037,15 @@ function selectAnswer(index, button) {
     }
   });
 
+  const selectedOptionText = question.options[index];
   if (index === question.correct) {
     score++;
     document.getElementById("score-display").textContent = score;
+    announce(`Correct! ${selectedOptionText}`);
+  } else {
+    announce(
+      `Incorrect. The correct answer is ${question.options[question.correct]}`
+    );
   }
 
   document.getElementById("next-btn").classList.remove("hidden");
@@ -1101,6 +1118,10 @@ function showResults() {
 
     document.getElementById("result-message").textContent = message;
     document.getElementById("result-subtitle").textContent = subtitle;
+
+    announce(
+      `${message} ${subtitle}. Your score is ${score} out of ${currentQuestions.length}.`
+    );
   }, 300);
 }
 
